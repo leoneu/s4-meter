@@ -13,7 +13,9 @@
  * language governing permissions and limitations under the
  * License. See accompanying LICENSE file. 
  */
-package io.s4.app.words;
+package io.s4.meter;
+
+import io.s4.meter.controller.plugin.words.WordGenerator;
 
 import org.junit.Test;
 

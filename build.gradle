@@ -21,13 +21,15 @@
  * 
  */
 
-apply plugin: "java"
+apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'application'
 
 version = new Version(major: 0, minor: 1, releaseType: 'SNAPSHOT')
 //version = new Version(major: 0, minor: 2, releaseType: 'beta', bugfix: 2)
 
-archivesBaseName = 'words'
+archivesBaseName = 's4-meter'
+mainClassName = ""
 
 /* Read environment variables. */
 env = System.getenv()
@@ -45,64 +47,85 @@ repositories {
     
     flatDir name: 's4core', dirs:  "${s4Image}/s4-core/lib"
     flatDir name: 's4driver', dirs:  "${s4Image}/s4-driver/lib/java"
+    mavenRepo name: "restlet_repo", urls: "http://maven.restlet.org"
     mavenLocal()
     mavenCentral()
 }
+
 
 /* All project libraries must be defined here. */
 libraries = [
 s4_core:            'io.s4:s4-core:0.3-SNAPSHOT',
 s4_driver:          'io.s4:s4-driver:0.3-SNAPSHOT',
+restlet_api:        'org.restlet.jse:org.restlet:2.0.6',
+restlet_json:       'org.restlet.jse:org.restlet.ext.json:2.0.6',
+restlet_xml:        'org.restlet.jse:org.restlet.ext.xml:2.0.6',
 json:               'org.json:json:20090211',
 log4j:              'log4j:log4j:1.2.15',
 junit:              'junit:junit:3.8.1',
 jakarta_regexp:     'jakarta-regexp:jakarta-regexp:1.4',
 commons_logging:    'commons-logging:commons-logging:1.1.1',
+commons_io:         'commons-io:commons-io:2.0.1',
 spring:             'org.springframework:spring:2.5.6',
-junit:              'junit:junit:4.4',
-scala_compiler:     'org.scala-lang:scala-compiler:2.8.1',
-scala_library:      'org.scala-lang:scala-library:2.8.1'
+junit:              'junit:junit:4.4'
 ]
 
 group = 'io.s4.apps'
 
 /* Dependencies. */
 dependencies { 
+    compile( libraries.s4_core )
+    compile( libraries.s4_driver)
     compile( libraries.json )
     compile( libraries.log4j )
     compile( libraries.commons_logging )
+    compile( libraries.commons_io )
     compile( libraries.spring )
-    compile( libraries.s4_core )
-    compile( libraries.s4_driver )
+    compile( libraries.restlet_api )
+    compile( libraries.restlet_xml )
     testCompile( libraries.junit )
 }
 
-deployImage = copySpec {
-    into ("s4-apps/" + project.name + "/lib") {
-        from project.configurations.runtime
-        from project.configurations.archives.allArtifactFiles
-    }
-    into ("s4-apps/" + project.name) {
-        from project.sourceSets.main.resources
-    }
+//deployImage = copySpec {
+//    into ("s4-apps/" + project.name + "/lib") {
+//        from project.configurations.runtime
+//        from project.configurations.archives.allArtifactFiles
+//    }
+//    into ("s4-apps/" + project.name) {
+//        from project.sourceSets.main.resources
+//    }
+//}
+//
+//task deploy(type: Copy) {
+//    description = "Copy app files to deployment dir."
+//    destinationDir = file(s4Image)
+//    with deployImage
+//}
+//
+//task cleanDeployment(type: Delete) {
+//    delete("${s4Image}/s4-apps/${project.name}")
+//}
+//
+//clean.dependsOn cleanDeployment
+
+task start_controller(dependsOn: build) << {
+    project.mainClassName = "io.s4.meter.controller.Main"
+    run.execute()
 }
 
-task deploy(type: Copy) {
-    description = "Copy app files to deployment dir."
-    destinationDir = file(s4Image)
-    with deployImage
+task start_generator(dependsOn: build) << {
+    project.mainClassName = "io.s4.meter.generator.GeneratorMain"
+    run.execute()
 }
 
-task cleanDeployment(type: Delete) {
-    delete("${s4Image}/s4-apps/${project.name}")
+eclipseClasspath {
+       downloadSources = false; // required for eclipseClasspath to work
 }
-
-clean.dependsOn cleanDeployment
 
 /* Generates the gradlew scripts.
-http://www.gradle.org/1.0-milestone-1/docs/userguide/gradle_wrapper.html */ 
+http://www.gradle.org/1.0-milestone-3/docs/userguide/gradle_wrapper.html */ 
 task wrapper(type: Wrapper) { 
-    gradleVersion = '1.0-milestone-1' 
+    gradleVersion = '1.0-milestone-3' 
 }
 
 class Version {

@@ -13,7 +13,7 @@
  * language governing permissions and limitations under the
  * License. See accompanying LICENSE file. 
  */
-package io.s4.app.words;
+package io.s4.meter.controller.plugin.words;
 
 import java.util.Random;
 import static java.lang.Math.abs;
@@ -41,7 +41,7 @@ public class WordGenerator {
         word = new char[wordLength];
     }
         
-    String getWord() {
+    public String getWord() {
         
         for (int i=0; i<wordLength; i++) {
             
