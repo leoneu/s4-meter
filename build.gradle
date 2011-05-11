@@ -15,112 +15,84 @@
  */
 
 /*
- * S4 App Top Level Build Script
+ * S4-Meter Top Level Build Script
  *
  *
  * 
  */
+  
+ allprojects {
+ }
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'application'
+ version = new Version(major: 0, minor: 1, releaseType: 'SNAPSHOT')
+ group = 'io.s4'
 
-version = new Version(major: 0, minor: 1, releaseType: 'SNAPSHOT')
-//version = new Version(major: 0, minor: 2, releaseType: 'beta', bugfix: 2)
+ /* Read environment variables. */
+ env = System.getenv()
+ s4Image = env['S4_IMAGE']
 
-archivesBaseName = 's4-meter'
-mainClassName = ""
-
-/* Read environment variables. */
-env = System.getenv()
-s4Image = env['S4_IMAGE']
-
-if (s4Image == null) {
-    logger.warn("\nEnvironment variable S4_IMAGE not set.")
-    System.exit(-1)
-    }
+ if (s4Image == null) {
+     logger.warn("\nEnvironment variable S4_IMAGE not set.")
+     System.exit(-1)
+ }
  
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+ /* All project libraries must be defined here. */
+ libraries = [
+ s4_core:            'io.s4:s4-core:0.3-SNAPSHOT',
+ s4_driver:          'io.s4:s4-driver:0.3-SNAPSHOT',
+ restlet_api:        'org.restlet.jse:org.restlet:2.0.6',
+ restlet_json:       'org.restlet.jse:org.restlet.ext.json:2.0.6',
+ restlet_xml:        'org.restlet.jse:org.restlet.ext.xml:2.0.6',
+ json:               'org.json:json:20090211',
+ log4j:              'log4j:log4j:1.2.15',
+ junit:              'junit:junit:3.8.1',
+ jakarta_regexp:     'jakarta-regexp:jakarta-regexp:1.4',
+ commons_logging:    'commons-logging:commons-logging:1.1.1',
+ commons_io:         'commons-io:commons-io:2.0.1',
+ spring:             'org.springframework:spring:2.5.6',
+ junit:              'junit:junit:4.4'
+ ]
+
+subprojects {
+
+    apply plugin: 'eclipse'
+    apply plugin: 'java'
     
-repositories {
+    archivesBaseName = 's4-meter' + '-' + project.name
     
-    flatDir name: 's4core', dirs:  "${s4Image}/s4-core/lib"
-    flatDir name: 's4driver', dirs:  "${s4Image}/s4-driver/lib/java"
-    mavenRepo name: "restlet_repo", urls: "http://maven.restlet.org"
-    mavenLocal()
-    mavenCentral()
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+       
+    repositories {
+        flatDir name: 's4core', dirs:  "${s4Image}/s4-core/lib"
+        flatDir name: 's4driver', dirs:  "${s4Image}/s4-driver/lib/java"
+        mavenRepo name: "restlet_repo", urls: "http://maven.restlet.org"
+        mavenLocal()
+        mavenCentral()
+    }
+       
+    /* Dependencies. */
+    dependencies {
+        compile( libraries.log4j )
+        compile( libraries.commons_logging )
+        compile( libraries.commons_io )
+        compile( libraries.restlet_api )
+        testCompile( libraries.junit )
+    }
+    
+    manifest.mainAttributes(
+        provider: 'gradle',
+        'Implementation-Url': 'http://s4.io',
+        'Implementation-Version': version,
+        'Implementation-Vendor': 'The S4 Project',
+        'Implementation-Vendor-Id': 'io.s4'
+    )
+    
+    eclipseClasspath {
+        downloadSources = false; // required for eclipseClasspath to work
+    }
 }
 
-
-/* All project libraries must be defined here. */
-libraries = [
-s4_core:            'io.s4:s4-core:0.3-SNAPSHOT',
-s4_driver:          'io.s4:s4-driver:0.3-SNAPSHOT',
-restlet_api:        'org.restlet.jse:org.restlet:2.0.6',
-restlet_json:       'org.restlet.jse:org.restlet.ext.json:2.0.6',
-restlet_xml:        'org.restlet.jse:org.restlet.ext.xml:2.0.6',
-json:               'org.json:json:20090211',
-log4j:              'log4j:log4j:1.2.15',
-junit:              'junit:junit:3.8.1',
-jakarta_regexp:     'jakarta-regexp:jakarta-regexp:1.4',
-commons_logging:    'commons-logging:commons-logging:1.1.1',
-commons_io:         'commons-io:commons-io:2.0.1',
-spring:             'org.springframework:spring:2.5.6',
-junit:              'junit:junit:4.4'
-]
-
-group = 'io.s4.apps'
-
-/* Dependencies. */
-dependencies { 
-    compile( libraries.s4_core )
-    compile( libraries.s4_driver)
-    compile( libraries.json )
-    compile( libraries.log4j )
-    compile( libraries.commons_logging )
-    compile( libraries.commons_io )
-    compile( libraries.spring )
-    compile( libraries.restlet_api )
-    compile( libraries.restlet_xml )
-    testCompile( libraries.junit )
-}
-
-//deployImage = copySpec {
-//    into ("s4-apps/" + project.name + "/lib") {
-//        from project.configurations.runtime
-//        from project.configurations.archives.allArtifactFiles
-//    }
-//    into ("s4-apps/" + project.name) {
-//        from project.sourceSets.main.resources
-//    }
-//}
-//
-//task deploy(type: Copy) {
-//    description = "Copy app files to deployment dir."
-//    destinationDir = file(s4Image)
-//    with deployImage
-//}
-//
-//task cleanDeployment(type: Delete) {
-//    delete("${s4Image}/s4-apps/${project.name}")
-//}
-//
-//clean.dependsOn cleanDeployment
-
-task start_controller(dependsOn: build) << {
-    project.mainClassName = "io.s4.meter.controller.Main"
-    run.execute()
-}
-
-task start_generator(dependsOn: build) << {
-    project.mainClassName = "io.s4.meter.generator.GeneratorMain"
-    run.execute()
-}
-
-eclipseClasspath {
-       downloadSources = false; // required for eclipseClasspath to work
-}
 
 /* Generates the gradlew scripts.
 http://www.gradle.org/1.0-milestone-3/docs/userguide/gradle_wrapper.html */ 

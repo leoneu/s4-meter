@@ -1,15 +1,31 @@
 S4 Meter - A Performance Evaluation Framework for S4
-====================================================
+==================================================== 
+
+DRAFT DRAFT
 
 The goal of this project is to provide an end to end framework for running 
 performance tests on S4 clusters.
 
-The framework should be able to manage multiple event generators. A single 
-master app should be able to configure, start, stop, and query all event 
-generators. The master should be capable of to carry out test plans 
-automatically, detect failures, and create comprehensive reports.
+The framework can manage multiple remote event generators. A single 
+master app deploys pluggable event generators to the remote hosts. The 
+remote generators can run as a service which is controlled by the main
+app. The controller has the ability to configure, start, and stop, the
+remote generators. It can also query the generator states and produce
+test reports. The logic for the event generators and the S4 application
+are bundled together as plugins.  
 
-Task: The initial task is as follows:
+Implementation
+--------------
+
+The code is organized in three modules:
+
+* common: code common to both the controller and the remote generators.
+* controller: code that runs locally in the controller.
+* generator: code that is deployed to remote hosts to generate events 
+without including the concrete implementation of the event generators.
+
+Initial Test Case
+-----------------
 
 * Each event contains a document and a unique ID.
 * The document is a sequence of random words.
@@ -21,8 +37,8 @@ Task: The initial task is as follows:
 * Each unique word is counted.
 
 
-Description
------------
+Installation and Run
+--------------------
 
 Set up S4 Image
 ---------------

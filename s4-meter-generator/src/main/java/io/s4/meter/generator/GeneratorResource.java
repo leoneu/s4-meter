@@ -6,7 +6,6 @@ package io.s4.meter.generator;
 import io.s4.meter.common.SerializationUtils;
 import io.s4.meter.common.BaseResource;
 import io.s4.meter.common.EventGenerator;
-import io.s4.meter.controller.Main;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
