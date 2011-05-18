@@ -31,7 +31,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 
-public class ControllerModule extends AbstractModule {
+class ControllerModule extends AbstractModule {
 
     PropertiesConfiguration config = null;
     private void loadProperties(Binder binder) {
@@ -75,7 +75,7 @@ public class ControllerModule extends AbstractModule {
     Communicator provideCommunicator() {
         Communicator comm = new RestletCommunicator(
                 config.getStringArray("generator.hostnames"),
-                config.getString("generator.port").trim(),
+                config.getStringArray("generator.ports"),
                 config.getString("generator.classURI").trim(),
                 config.getString("generator.instanceURI").trim(),
                 config.getString("generator.eventGeneratorClass"),

@@ -15,7 +15,7 @@
  */
 package io.s4.meter;
 
-import io.s4.meter.controller.plugin.words.WordGenerator;
+import io.s4.meter.controller.plugin.words.RandomWord;
 
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ public class TestWordGenerator {
 
         for (int wordSize = 10; wordSize <= 10000; wordSize *= 10) {
 
-            WordGenerator wg = new WordGenerator(0, wordSize);
+            RandomWord wg = new RandomWord(0, wordSize);
             long start = System.currentTimeMillis();
             
             for (int i = 0; i < 1000; i++)

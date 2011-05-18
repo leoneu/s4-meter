@@ -25,26 +25,54 @@ import org.apache.log4j.Logger;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
 
-public class RestletCommunicator implements Communicator {
+class RestletCommunicator implements Communicator {
 
     private static Logger logger = Logger.getLogger(RestletCommunicator.class);
 
-    final private ClientResource genClassResource;
-    final private ClientResource genResource;
+    final private ClientResource[] genClassResource;
+    final private ClientResource[] genResource;
+    final private int numHosts;
     private Class<?>[] classes;
 
-    public RestletCommunicator(String[] hosts, String port, String classURI,
+    public RestletCommunicator(String[] hosts, String[] ports, String classURI,
             String instanceURI, String eventGeneratorClassname,
             String[] dependentClassnames) {
 
-        logger.trace("http://" + hosts[0] + ":" + port + classURI);
-        logger.trace("http://" + hosts[0] + ":" + port + instanceURI);
-        /* Create REST resources. */
-        genClassResource = new ClientResource("http://" + hosts[0] + ":" + port
-                + classURI);
+        /* Validate parameters. */
+        if (hosts == null) {
+            throw new NullPointerException("hosts.");
+        }
+        if (ports == null) {
+            throw new NullPointerException("ports.");
+        }
+        if (hosts.length != ports.length) {
+            throw new IllegalArgumentException("Number of hosts ("
+                    + hosts.length + ") and number of ports (" + ports.length
+                    + ") don't match.");
+        }
+        if (eventGeneratorClassname == null) {
+            throw new NullPointerException("eventGeneratorClassname.");
+        }
+        if (classURI == null) {
+            throw new NullPointerException("classURI.");
+        }
+        if (instanceURI == null) {
+            throw new NullPointerException("instanceURI.");
+        }
 
-        genResource = new ClientResource("http://" + hosts[0] + ":" + port
-                + instanceURI);
+        /* Number of remote generators. */
+        numHosts = hosts.length;
+
+        /* Create REST resources. */
+        genClassResource = new ClientResource[numHosts];
+        genResource = new ClientResource[numHosts];
+
+        for (int i = 0; i < numHosts; i++) {
+            genClassResource[i] = new ClientResource("http://" + hosts[i] + ":"
+                    + ports[i] + classURI);
+            genResource[i] = new ClientResource("http://" + hosts[i] + ":"
+                    + ports[i] + instanceURI);
+        }
 
         /*
          * We need to send the event generator class and dependent classes to
@@ -53,7 +81,9 @@ public class RestletCommunicator implements Communicator {
          */
         int i = 0;
         try {
-            int numClasses = dependentClassnames.length + 1;
+            int numClasses = 1;
+            if (dependentClassnames != null)
+                numClasses = dependentClassnames.length + 1;
             classes = new Class[numClasses];
             classes[i++] = Class.forName(eventGeneratorClassname);
             for (; i < numClasses; i++) {
@@ -68,19 +98,20 @@ public class RestletCommunicator implements Communicator {
         }
     }
 
-    
     @Override
     public void sendClasses() throws IOException {
-        
+
         int numClasses = classes.length;
-        for(int i=0; i<numClasses; i++){
+        for (int i = 0; i < numClasses; i++) {
             sendClass(classes[i]);
         }
     }
-    
+
     private void sendClass(Class<?> clazz) throws IOException {
 
-        sendClassInternal(clazz, genClassResource);
+        for (int i = 0; i < numHosts; i++) {
+            sendClassInternal(clazz, genClassResource[i]);
+        }
     }
 
     @Override
@@ -88,8 +119,11 @@ public class RestletCommunicator implements Communicator {
 
         byte[] byteArray = SerializationUtils.serialize(gen);
 
-        logger.trace("post gen: " + byteArray.toString());
-        Representation rep = genResource.post(byteArray);
+        for (int i = 0; i < numHosts; i++) {
+            logger.trace("post gen: " + byteArray.toString() + "  "
+                    + genResource.toString());
+            Representation rep = genResource[i].post(byteArray);
+        }
 
     }
 

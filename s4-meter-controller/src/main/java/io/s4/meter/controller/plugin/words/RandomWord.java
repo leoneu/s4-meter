@@ -18,7 +18,7 @@ package io.s4.meter.controller.plugin.words;
 import java.util.Random;
 import static java.lang.Math.abs;
 
-public class WordGenerator {
+public class RandomWord {
 
     static int DEFAULT_WORD_SIZE = 10;
     Random random;
@@ -27,15 +27,15 @@ public class WordGenerator {
     int alphabetSize = alphabet.length;
     char[] word;
     
-    public WordGenerator() {
+    public RandomWord() {
         this(0, DEFAULT_WORD_SIZE);
     }
     
-    public WordGenerator(long seed) {
+    public RandomWord(long seed) {
         this(seed, DEFAULT_WORD_SIZE);
     }
     
-    public WordGenerator(long seed, int wordLength) {
+    public RandomWord(long seed, int wordLength) {
         this.random = new Random(seed);
         this.wordLength = wordLength;
         word = new char[wordLength];
