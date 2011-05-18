@@ -49,7 +49,9 @@
  jakarta_regexp:     'jakarta-regexp:jakarta-regexp:1.4',
  commons_logging:    'commons-logging:commons-logging:1.1.1',
  commons_io:         'commons-io:commons-io:2.0.1',
+ commons_config:     'commons-configuration:commons-configuration:1.6',
  spring:             'org.springframework:spring:2.5.6',
+ guice:		     'com.google.inject:guice:3.0',
  junit:              'junit:junit:4.4'
  ]
 
@@ -76,7 +78,9 @@ subprojects {
         compile( libraries.log4j )
         compile( libraries.commons_logging )
         compile( libraries.commons_io )
+        compile( libraries.commons_config )
         compile( libraries.restlet_api )
+        compile( libraries.guice )
         testCompile( libraries.junit )
     }
     

@@ -26,7 +26,7 @@ public class GeneratorMain {
 		// Increase the number of connections. 
 		component.getServers().getContext().getParameters().add("maxTotalConnections", "50");
 
-        component.getDefaultHost().attach("/firstResource",
+        component.getDefaultHost().attach("/s4meter",
                 new RestletApp());
 
         // Start the component.

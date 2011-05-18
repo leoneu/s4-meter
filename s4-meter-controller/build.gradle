@@ -23,3 +23,25 @@ dependencies {
     compile( libraries.json)
     compile project(':s4-meter-common')
 }
+
+deployImage = copySpec {
+    into ("s4-apps/" + project.name + "/lib") {
+        from project.configurations.runtime
+        from project.configurations.archives.allArtifactFiles
+    }
+    into ("s4-apps/" + project.name) {
+        from project.sourceSets.main.resources
+    }
+}
+
+task deploy(type: Copy) {
+    description = "Copy app files to deployment dir."
+    destinationDir = file(s4Image)
+    with deployImage
+}
+
+task cleanDeployment(type: Delete) {
+    delete("${s4Image}/s4-apps/${project.name}")
+}
+
+clean.dependsOn cleanDeployment

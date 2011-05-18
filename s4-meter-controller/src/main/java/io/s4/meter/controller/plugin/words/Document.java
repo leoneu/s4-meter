@@ -15,7 +15,10 @@
  */
 package io.s4.meter.controller.plugin.words;
 
-public class Document {
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public class Document  implements Serializable {
     private long id;
     private String text;
     
