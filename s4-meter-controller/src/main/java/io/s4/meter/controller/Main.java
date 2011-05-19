@@ -23,13 +23,16 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 
 public class Main {
 
     private static Logger logger = Logger.getLogger("io.s4.meter");
-
+    
     public static void main(String[] args) throws IOException,
             ResourceException, InstantiationException, IllegalAccessException,
             ClassNotFoundException {
@@ -38,9 +41,19 @@ public class Main {
         BasicConfigurator.configure();
         logger.setLevel(Level.TRACE);
         
-        /* Initialize Guice module for the controller. */
+        /* Need to get name of plugin module. Load ControllerModule to get configuration. */
         Injector injector = Guice.createInjector(new ControllerModule());
         
+        /* Access module named using a named annotation. */ 
+        // TODO Need a nicer way to do this. Pass module name as an arg to main?
+        // The advantage of that is that we can easily start the app with a given module from
+        // the command line. 
+        String moduleName = injector.getInstance(Key.get(String.class, Names.named("generator.module")));
+        
+        /* Initialize Guice module for plugin. */ // "io.s4.meter.controller.plugin.randomdoc.RandomDocModule"
+        AbstractModule module = (AbstractModule) Class.forName(moduleName).newInstance();
+        injector = Guice.createInjector(module);
+
         /* Build an Event Generator object using Injection. This instance will be 
          * serialized and sent to remote hosts. 
          */
@@ -51,9 +64,7 @@ public class Main {
          */
         Communicator comm = injector.getInstance(Communicator.class);
 
-        /* Send generator classes. TODO list of classes needs to be passed to 
-         * the communicator. 
-         */
+        /* Send generator classes. */
         comm.sendClasses();
         
         /* Instance comm will take care of serializing this configured object to the 

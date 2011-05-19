@@ -1,10 +1,25 @@
+/*
+ * Copyright (c) 2011 Yahoo! Inc. All rights reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific
+ * language governing permissions and limitations under the
+ * License. See accompanying LICENSE file. 
+ */
 package io.s4.meter.generator;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.restlet.Component;
-import org.restlet.data.Protocol;
+
+import com.google.inject.Guice;
 
 
 public class GeneratorMain {
@@ -16,21 +31,13 @@ public class GeneratorMain {
         /* Set up logger basic configuration. */
         BasicConfigurator.configure();
         logger.setLevel(Level.TRACE);
+        
+        if(args.length > 0)
+            System.setProperty("generator.port", args[0]);
 
-        // Create a new Component.
-        Component component = new Component();
-
-        // Add a new HTTP server listening on port 8182.
-        component.getServers().add(Protocol.HTTP, 8182);
-
-		// Increase the number of connections. 
-		component.getServers().getContext().getParameters().add("maxTotalConnections", "50");
-
-        component.getDefaultHost().attach("/s4meter",
-                new RestletApp());
-
-        // Start the component.
-        component.start();
+        /* Start service. */
+        logger.info("Starting service.");
+        Guice.createInjector(new GeneratorModule()).getInstance(Service.class);
     }
 
 }

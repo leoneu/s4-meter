@@ -15,7 +15,7 @@
  */
 package io.s4.meter;
 
-import io.s4.meter.controller.plugin.words.RandomWord;
+import io.s4.meter.controller.plugin.randomdoc.RandomWord;
 
 import org.junit.Test;
 

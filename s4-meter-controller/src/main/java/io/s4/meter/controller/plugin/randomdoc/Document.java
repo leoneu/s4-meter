@@ -13,7 +13,7 @@
  * language governing permissions and limitations under the
  * License. See accompanying LICENSE file. 
  */
-package io.s4.meter.controller.plugin.words;
+package io.s4.meter.controller.plugin.randomdoc;
 
 import java.io.Serializable;
 

@@ -31,7 +31,8 @@ class RestletCommunicator implements Communicator {
 
     final private ClientResource[] genClassResource;
     final private ClientResource[] genResource;
-    final private int numHosts;
+    final private String[] hosts;
+    final private String[] ports;
     private Class<?>[] classes;
 
     public RestletCommunicator(String[] hosts, String[] ports, String classURI,
@@ -60,8 +61,9 @@ class RestletCommunicator implements Communicator {
             throw new NullPointerException("instanceURI.");
         }
 
-        /* Number of remote generators. */
-        numHosts = hosts.length;
+        this.hosts = hosts;
+        int numHosts = hosts.length;
+        this.ports = ports;
 
         /* Create REST resources. */
         genClassResource = new ClientResource[numHosts];
@@ -102,15 +104,12 @@ class RestletCommunicator implements Communicator {
     public void sendClasses() throws IOException {
 
         int numClasses = classes.length;
-        for (int i = 0; i < numClasses; i++) {
-            sendClass(classes[i]);
-        }
-    }
-
-    private void sendClass(Class<?> clazz) throws IOException {
-
-        for (int i = 0; i < numHosts; i++) {
-            sendClassInternal(clazz, genClassResource[i]);
+        for (int i = 0; i < hosts.length; i++) {
+            logger.info("Reset service - host: " + hosts[i] + ", port: " + ports[i]);
+            reset(genClassResource[i]);
+            for (int j = 0; j < numClasses; j++) {
+                sendClassInternal(classes[j], genClassResource[i]);
+            }
         }
     }
 
@@ -119,7 +118,7 @@ class RestletCommunicator implements Communicator {
 
         byte[] byteArray = SerializationUtils.serialize(gen);
 
-        for (int i = 0; i < numHosts; i++) {
+        for (int i = 0; i < hosts.length; i++) {
             logger.trace("post gen: " + byteArray.toString() + "  "
                     + genResource.toString());
             Representation rep = genResource[i].post(byteArray);
@@ -144,5 +143,10 @@ class RestletCommunicator implements Communicator {
         Representation rep = resource.post((Object) classBytes);
         // TODO use rep
         logger.trace("post genclass: " + classBytes.toString());
+    }
+
+    /* Reset generator. */
+    void reset(ClientResource resource) {
+        resource.get();
     }
 }

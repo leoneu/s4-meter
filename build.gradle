@@ -60,7 +60,7 @@ subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'java'
     
-    archivesBaseName = 's4-meter' + '-' + project.name
+    //archivesBaseName = 's4-meter' + '-' + project.name
     
     sourceCompatibility = 1.6
     targetCompatibility = 1.6

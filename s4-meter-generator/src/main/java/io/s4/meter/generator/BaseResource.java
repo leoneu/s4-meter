@@ -1,4 +1,4 @@
-package io.s4.meter.common;
+package io.s4.meter.generator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +10,10 @@ import org.restlet.resource.ServerResource;
  * all resources.
  * 
  */
-public abstract class BaseResource extends ServerResource {
+abstract class BaseResource extends ServerResource {
     
-    static protected Class<?> generatorClass;
-    static protected List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
+    static Class<?> generatorClass = null;
+    static List<ClassLoader> classLoaders = null;
 
     /**
      * @return the generatorClass
@@ -27,6 +27,13 @@ public abstract class BaseResource extends ServerResource {
      */
     public void setGeneratorClass(Class<?> generatorClass) {
         BaseResource.generatorClass = generatorClass;
+    }
+    
+    /**
+     * @param generatorClass the generatorClass to set
+     */
+    public void resetGenerator() {
+        classLoaders = null;
     }
 
 }
