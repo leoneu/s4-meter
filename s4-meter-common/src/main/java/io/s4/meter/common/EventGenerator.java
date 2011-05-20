@@ -76,8 +76,6 @@ public abstract class EventGenerator implements Serializable {
             driver.send(m);
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            close();
         }
     }
 
