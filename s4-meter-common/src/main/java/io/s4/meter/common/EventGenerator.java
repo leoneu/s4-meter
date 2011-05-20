@@ -76,6 +76,8 @@ public abstract class EventGenerator implements Serializable {
             driver.send(m);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            close();
         }
     }
 
@@ -83,7 +85,8 @@ public abstract class EventGenerator implements Serializable {
 
     public void close() {
         try {
-            driver.disconnect();
+            if (driver != null) 
+                driver.disconnect();
         } catch (Exception e) {
             e.printStackTrace();
         }
