@@ -26,8 +26,8 @@ public class GeneratorModule extends AbstractModule {
             config = new PropertiesConfiguration();
             config.load(is);
 
-            System.out.println(ConfigurationUtils.toString(config));
-            // TODO - validate properties.
+            //System.out.println(ConfigurationUtils.toString(config));
+            logger.info(ConfigurationUtils.toString(config));
             
             /* Make all properties injectable. Do we need this?*/
             Names.bindProperties(binder, ConfigurationConverter.getProperties(config));
@@ -54,7 +54,8 @@ public class GeneratorModule extends AbstractModule {
         Service comm = new RestletApp(
                 config.getInt("generator.port"),
                 config.getString("generator.classURI").trim(),
-                config.getString("generator.instanceURI").trim());
+                config.getString("generator.instanceURI").trim(),
+                config.getString("generator.actionURI"));
 
         return comm;
     }

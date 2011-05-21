@@ -15,6 +15,7 @@
  */
 package io.s4.meter.controller.plugin.randomdoc;
 
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,17 +24,15 @@ import io.s4.meter.common.EventGenerator;
 @SuppressWarnings("serial")
 public class RandomDocGenerator extends EventGenerator {
 
+    private static Logger logger = Logger
+    .getLogger(RandomDocGenerator.class);
+    
     final int wordSize;
     final int numWordsPerDoc;
     final int numEvents;
 
-    public RandomDocGenerator(
-            String hostName, 
-            int port, 
-            String s4StreamName,
-            String s4EventClassName,
-            int wordSize,
-            int numWordsPerDoc, 
+    public RandomDocGenerator(String hostName, int port, String s4StreamName,
+            String s4EventClassName, int wordSize, int numWordsPerDoc,
             int numEvents) {
         super(hostName, port, s4StreamName, s4EventClassName);
 
@@ -45,13 +44,13 @@ public class RandomDocGenerator extends EventGenerator {
     /*
      * (non-Javadoc)
      * 
-     * @see firstResource.EventGenerator#start()
+     * @see io.s4.meter.common.EventGenerator#start()
      */
     @Override
     public void start() {
 
         JSONObject jsonDoc;
-        System.out.println("Started event generator.\n");
+        logger.info("Started event generator.");
 
         RandomWord wg = new RandomWord(0, wordSize);
         StringBuilder words;
@@ -76,22 +75,9 @@ public class RandomDocGenerator extends EventGenerator {
                 send(jsonDoc);
 
             } catch (JSONException ex) {
-                System.err.println("Couldn't create document.");
+                logger.error("Couldn't create document.");
                 ex.printStackTrace(System.err);
             }
         }
-
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see firstResource.EventGenerator#stop()
-     */
-    @Override
-    public void stop() {
-        // TODO Auto-generated method stub
-
-    }
-
 }

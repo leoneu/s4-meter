@@ -6,11 +6,15 @@ import io.s4.client.Message;
 import java.io.IOException;
 import java.io.Serializable;
 
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 @SuppressWarnings("serial")
 public abstract class EventGenerator implements Serializable {
 
+    private static Logger logger = Logger
+    .getLogger(EventGenerator.class);
+    
     final private String hostName;
     final private int port;
     final protected String s4StreamName;
@@ -35,30 +39,27 @@ public abstract class EventGenerator implements Serializable {
 
         in.defaultReadObject();
         init();
-        System.out.println("XXXXXXXXXXXXXInit.");//DEBUG
+        logger.info("Initialized event generator.");
 
     }
 
     protected void init() {
-        //private void init() {
 
-        System.out.println("Initializing S4 driver for EventGenerator.");
+        logger.info("Initializing S4 driver for EventGenerator.");
 
         driver = new Driver(hostName, port);
-        driver.setDebug(true); // DEBUG
+        driver.setDebug(false); // set to true to debug.
 
         try {
             if (!driver.init()) {
-                System.err.println("Driver initialization failed.");
+                logger.error("Driver initialization failed.");
                 System.exit(1);
             }
 
             if (!driver.connect()) {
-                System.err.println("Driver initialization failed.");
+                logger.error("Driver initialization failed.");
                 System.exit(1);
-            }
-            System.err.println("Driver state after connect: " + driver.getState() + "\n"); //DEBUG
-            
+            }            
         } catch (IOException e) {
             e.printStackTrace();
         } 
@@ -68,7 +69,7 @@ public abstract class EventGenerator implements Serializable {
 
     protected void send(JSONObject jsonDoc) {
 
-        System.out.println("Sending: " + jsonDoc.toString() + " " + s4StreamName + " " + s4EventClassName);
+        logger.trace("Sending: " + jsonDoc.toString() + " " + s4StreamName + " " + s4EventClassName);
 
         Message m = new Message(s4StreamName, s4EventClassName,
                 jsonDoc.toString());
@@ -78,8 +79,6 @@ public abstract class EventGenerator implements Serializable {
             e.printStackTrace();
         }
     }
-
-    abstract public void stop();
 
     public void close() {
         try {

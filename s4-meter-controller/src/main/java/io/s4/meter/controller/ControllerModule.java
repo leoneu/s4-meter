@@ -62,6 +62,7 @@ public class ControllerModule extends AbstractModule {
                 config.getStringArray("generator.ports"),
                 config.getString("generator.classURI").trim(),
                 config.getString("generator.instanceURI").trim(),
+                config.getString("generator.actionURI").trim(),
                 config.getString("generator.eventGeneratorClass"),
                 config.getStringArray("generator.dependentClasses"));
         return comm;

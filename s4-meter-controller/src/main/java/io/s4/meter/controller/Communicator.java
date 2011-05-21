@@ -23,4 +23,5 @@ public interface Communicator {
 
     void sendClasses() throws IOException;
     void sendGenerator(EventGenerator gen)  throws IOException;
+    void start() throws IOException;
 }

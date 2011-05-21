@@ -30,7 +30,7 @@ import org.restlet.resource.Post;
 public class GeneratorResource extends BaseResource {
 
     private static Logger logger = Logger
-            .getLogger("io.s4.meter.generator.GeneratorResource");
+            .getLogger(GeneratorResource.class);
 
     /**
      * Handle POST requests.
@@ -68,21 +68,15 @@ public class GeneratorResource extends BaseResource {
             }
 
             /* Deserialize using the custom class loader. */
-            Object gen = null;
             try {
-                gen = SerializationUtils
+                generator = SerializationUtils
                         .deserialize(objectBuffer, classLoaders);
             } catch (ClassNotFoundException e) {
                 logger.error("Couldn't find class loader for deserialization.");
             }
-            logger.trace("gen: " + gen.toString());
+            logger.trace("gen: " + generator.toString());
             logger.trace("genclass loader: "
-                    + gen.getClass().getClassLoader().toString());
-
-            /* Run!. */
-            generatorClass.getMethod("start").invoke(gen);
-            //generatorClass.getMethod("close").invoke(gen);
-
+                    + generator.getClass().getClassLoader().toString());
         }
 
         setStatus(Status.SUCCESS_OK);

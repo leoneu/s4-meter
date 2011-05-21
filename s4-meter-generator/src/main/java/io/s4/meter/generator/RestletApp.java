@@ -29,15 +29,18 @@ public class RestletApp extends Application implements Service {
     
     final private String generatorInstanceURI;
     final private String generatorClassURI;
+    final private String generatorActionURI;
     
     RestletApp(
             int port,
             String generatorClassURI,
-            String generatorInstanceURI) {
+            String generatorInstanceURI,
+            String generatorActionURI) {
         super();
         
         this.generatorInstanceURI = generatorInstanceURI;
         this.generatorClassURI = generatorClassURI;
+        this.generatorActionURI = generatorActionURI;
         
         // Create a new Component.
         Component component = new Component();
@@ -64,14 +67,15 @@ public class RestletApp extends Application implements Service {
      */
     @Override
     public synchronized Restlet createInboundRoot() {
-        // Create a router Restlet that defines routes.
+        
+        /* Create a router Restlet that defines routes. */
         Router router = new Router(getContext());
 
-        // Defines a route for the resource "event generator"
+        /* Defines a routes. */
         router.attach(generatorInstanceURI, GeneratorResource.class);
-        // Defines a route for the resource "event generator class"
         router.attach(generatorClassURI, GeneratorClassResource.class);
-
+        router.attach(generatorActionURI, ActionResource.class);  
+      
         return router;
     }
 }

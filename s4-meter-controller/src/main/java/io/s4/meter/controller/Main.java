@@ -67,10 +67,11 @@ public class Main {
         /* Send generator classes. */
         comm.sendClasses();
         
-        /* Instance comm will take care of serializing this configured object to the 
-         * remote hosts. 
-         */
+        /* comm will serialize gen and send it to the remote hosts. */
         comm.sendGenerator(gen);
+        
+        /* Tell remote hosts to start generating events! */
+        comm.start();
 
     }
 }

@@ -20,6 +20,8 @@ import io.s4.meter.common.SerializationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.restlet.representation.Representation;
@@ -31,12 +33,13 @@ class RestletCommunicator implements Communicator {
 
     final private ClientResource[] genClassResource;
     final private ClientResource[] genResource;
+    final private ClientResource[] actionResource;
     final private String[] hosts;
     final private String[] ports;
     private Class<?>[] classes;
 
     public RestletCommunicator(String[] hosts, String[] ports, String classURI,
-            String instanceURI, String eventGeneratorClassname,
+            String instanceURI, String actionURI, String eventGeneratorClassname,
             String[] dependentClassnames) {
 
         /* Validate parameters. */
@@ -60,6 +63,9 @@ class RestletCommunicator implements Communicator {
         if (instanceURI == null) {
             throw new NullPointerException("instanceURI.");
         }
+        if (actionURI == null) {
+            throw new NullPointerException("actionURI.");
+        }
 
         this.hosts = hosts;
         int numHosts = hosts.length;
@@ -68,12 +74,16 @@ class RestletCommunicator implements Communicator {
         /* Create REST resources. */
         genClassResource = new ClientResource[numHosts];
         genResource = new ClientResource[numHosts];
+        actionResource = new ClientResource[numHosts];
+
 
         for (int i = 0; i < numHosts; i++) {
             genClassResource[i] = new ClientResource("http://" + hosts[i] + ":"
                     + ports[i] + classURI);
             genResource[i] = new ClientResource("http://" + hosts[i] + ":"
                     + ports[i] + instanceURI);
+            actionResource[i] = new ClientResource("http://" + hosts[i] + ":"
+                    + ports[i] + actionURI);
         }
 
         /*
@@ -101,6 +111,16 @@ class RestletCommunicator implements Communicator {
     }
 
     @Override
+    public void start() throws IOException {
+        for (int i = 0; i < hosts.length; i++) {
+            String now = String.valueOf(Calendar.getInstance().getTimeInMillis());
+            actionResource[i].getReference().addQueryParameter("start", now);
+            actionResource[i].get();
+            logger.info("Started event generator - host: " + hosts[i] + ", port: " + ports[i] + " time: " + now);
+        }
+    }
+    
+    @Override
     public void sendClasses() throws IOException {
 
         int numClasses = classes.length;
@@ -122,6 +142,7 @@ class RestletCommunicator implements Communicator {
             logger.trace("post gen: " + byteArray.toString() + "  "
                     + genResource.toString());
             Representation rep = genResource[i].post(byteArray);
+            logger.info(rep);
         }
 
     }
@@ -141,12 +162,14 @@ class RestletCommunicator implements Communicator {
         byte[] classBytes = IOUtils.toByteArray(in);
 
         Representation rep = resource.post((Object) classBytes);
-        // TODO use rep
+        logger.info(rep);
+
         logger.trace("post genclass: " + classBytes.toString());
     }
 
     /* Reset generator. */
     void reset(ClientResource resource) {
-        resource.get();
+        Representation rep = resource.delete();
+        logger.info(rep);
     }
 }

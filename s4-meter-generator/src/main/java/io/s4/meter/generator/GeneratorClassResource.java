@@ -25,13 +25,13 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Status;
 import org.restlet.representation.Representation;
 import org.restlet.representation.ObjectRepresentation;
-import org.restlet.resource.Get;
+import org.restlet.resource.Delete;
 import org.restlet.resource.Post;
 
 public class GeneratorClassResource extends BaseResource {
 
     private static Logger logger = Logger
-            .getLogger("io.s4.meter.generator.GeneratorClassResource");
+            .getLogger(GeneratorClassResource.class);
 
     /**
      * Handle POST requests.
@@ -95,10 +95,12 @@ public class GeneratorClassResource extends BaseResource {
     }
 
     /* Reset the service. Loaded classes are removed. */
-    @Get
-    public String toString() {
-        logger.info("Generator reset");
+    @Delete
+    public String deleteGenerator() {
+        logger.info("Deleting event generator.");
         classLoaders = null;
-        return "Generator reset.";
+        generator = null;
+        generatorClass = null;
+        return "Deleted event generator.";
     }
 }

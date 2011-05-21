@@ -1,6 +1,5 @@
 package io.s4.meter.generator;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.restlet.resource.ServerResource;
@@ -14,6 +13,7 @@ abstract class BaseResource extends ServerResource {
     
     static Class<?> generatorClass = null;
     static List<ClassLoader> classLoaders = null;
+    static Object generator = null;
 
     /**
      * @return the generatorClass
