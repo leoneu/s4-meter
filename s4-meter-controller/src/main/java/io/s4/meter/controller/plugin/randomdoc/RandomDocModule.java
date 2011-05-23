@@ -35,6 +35,7 @@ public class RandomDocModule extends ControllerModule {
               config.getInt("s4Adaptor.port"),
               config.getString("s4App.streamName"),
               config.getString("s4App.eventClassName"),
+              config.getFloat("generator.eventRate"),
               config.getInt("randomDocGenerator.wordSize"),
               config.getInt("randomDocGenerator.numWordsPerDoc"),
               config.getInt("randomDocGenerator.numEvents"));

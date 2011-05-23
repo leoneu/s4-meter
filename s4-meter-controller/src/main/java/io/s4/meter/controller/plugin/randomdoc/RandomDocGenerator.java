@@ -32,9 +32,9 @@ public class RandomDocGenerator extends EventGenerator {
     final int numEvents;
 
     public RandomDocGenerator(String hostName, int port, String s4StreamName,
-            String s4EventClassName, int wordSize, int numWordsPerDoc,
+            String s4EventClassName, float eventRate, int wordSize, int numWordsPerDoc,
             int numEvents) {
-        super(hostName, port, s4StreamName, s4EventClassName);
+        super(hostName, port, s4StreamName, s4EventClassName, eventRate);
 
         this.wordSize = wordSize;
         this.numWordsPerDoc = numWordsPerDoc;
@@ -47,7 +47,7 @@ public class RandomDocGenerator extends EventGenerator {
      * @see io.s4.meter.common.EventGenerator#start()
      */
     @Override
-    public void start() {
+    public void start() throws InterruptedException {
 
         JSONObject jsonDoc;
         logger.info("Started event generator.");
