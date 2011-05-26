@@ -15,6 +15,7 @@
  */
 package io.s4.meter.generator;
 
+import io.s4.meter.common.EventGenerator;
 import io.s4.meter.common.SerializationUtils;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -69,8 +70,8 @@ public class GeneratorResource extends BaseResource {
 
             /* Deserialize using the custom class loader. */
             try {
-                generator = SerializationUtils
-                        .deserialize(objectBuffer, classLoaders);
+                generator = (EventGenerator) SerializationUtils
+                        .deserialize(objectBuffer, classLoaders);                
             } catch (ClassNotFoundException e) {
                 logger.error("Couldn't find class loader for deserialization.");
             }

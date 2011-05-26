@@ -31,18 +31,21 @@ import com.google.inject.name.Names;
 public class ControllerModule extends AbstractModule {
 
     protected PropertiesConfiguration config = null;
+
     private void loadProperties(Binder binder) {
-        
+
         try {
-            InputStream is = this.getClass().getResourceAsStream("/s4-meter.properties");
+            InputStream is = this.getClass().getResourceAsStream(
+                    "/s4-meter.properties");
             config = new PropertiesConfiguration();
             config.load(is);
 
             System.out.println(ConfigurationUtils.toString(config));
             // TODO - validate properties.
-            
-            /* Make all properties injectable. Do we need this?*/
-            Names.bindProperties(binder, ConfigurationConverter.getProperties(config));
+
+            /* Make all properties injectable. Do we need this? */
+            Names.bindProperties(binder,
+                    ConfigurationConverter.getProperties(config));
         } catch (ConfigurationException e) {
             binder.addError(e);
             e.printStackTrace();
@@ -51,17 +54,22 @@ public class ControllerModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        if(config == null)
+        if (config == null)
             loadProperties(binder());
+
+        bind(Controller.class).asEagerSingleton();
+        bind(String.class).annotatedWith(Names.named("generator.module"))
+                .toInstance(config.getString("generator.module"));
     }
-    
-    @Provides @Singleton
+
+    @Provides
+    @Singleton
     Communicator provideCommunicator() {
         Communicator comm = new RestletCommunicator(
                 config.getStringArray("generator.hostnames"),
-                config.getStringArray("generator.ports"),
+                config.getStringArray("generator.ports"), 
                 config.getString("generator.classURI").trim(),
-                config.getString("generator.instanceURI").trim(),
+                config.getString("generator.instanceURI").trim(), 
                 config.getString("generator.actionURI").trim(),
                 config.getString("generator.eventGeneratorClass"),
                 config.getStringArray("generator.dependentClasses"));

@@ -16,12 +16,13 @@
 package io.s4.meter.controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import io.s4.meter.common.EventGenerator;
 
 public interface Communicator {
 
     void sendClasses() throws IOException;
-    void sendGenerator(EventGenerator gen)  throws IOException;
     void start() throws IOException;
+    void sendGenerator(List<EventGenerator> generators) throws Exception;
 }

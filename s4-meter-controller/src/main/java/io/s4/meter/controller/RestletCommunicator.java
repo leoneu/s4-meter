@@ -21,10 +21,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
 
 class RestletCommunicator implements Communicator {
@@ -84,6 +84,10 @@ class RestletCommunicator implements Communicator {
                     + ports[i] + instanceURI);
             actionResource[i] = new ClientResource("http://" + hosts[i] + ":"
                     + ports[i] + actionURI);
+            
+            logger.trace(genClassResource.toString());
+            logger.trace(genResource.toString());
+            logger.trace(actionResource.toString());
         }
 
         /*
@@ -116,7 +120,7 @@ class RestletCommunicator implements Communicator {
             String now = String.valueOf(Calendar.getInstance().getTimeInMillis());
             actionResource[i].getReference().addQueryParameter("start", now);
             actionResource[i].get();
-            logger.info("Started event generator - host: " + hosts[i] + ", port: " + ports[i] + " time: " + now);
+            logger.trace("GET: " + actionResource[i].getReference() + " by resource " + actionResource[i].toString());
         }
     }
     
@@ -134,15 +138,17 @@ class RestletCommunicator implements Communicator {
     }
 
     @Override
-    public void sendGenerator(EventGenerator gen) {
+    public void sendGenerator(List<EventGenerator> generators) throws Exception {
 
-        byte[] byteArray = SerializationUtils.serialize(gen);
-
+        if(generators.size() != hosts.length) {
+            logger.error("Mismath in number of remote generators: " + generators.size() + " vs. " + hosts.length);
+            throw new Exception();
+        }
+        
         for (int i = 0; i < hosts.length; i++) {
-            logger.trace("post gen: " + byteArray.toString() + "  "
-                    + genResource.toString());
-            Representation rep = genResource[i].post(byteArray);
-            logger.info(rep);
+            byte[] byteArray = SerializationUtils.serialize(generators.get(i));
+            genResource[i].post(byteArray);
+            logger.trace("POST: " + genResource[i].getReference() + " by resource " + genResource[i].toString());
         }
 
     }
@@ -161,15 +167,13 @@ class RestletCommunicator implements Communicator {
         }
         byte[] classBytes = IOUtils.toByteArray(in);
 
-        Representation rep = resource.post((Object) classBytes);
-        logger.info(rep);
-
-        logger.trace("post genclass: " + classBytes.toString());
+        resource.post((Object) classBytes);
+        logger.trace("POST: " + resource.getReference() + " by resource " + resource.toString());
     }
 
     /* Reset generator. */
     void reset(ClientResource resource) {
-        Representation rep = resource.delete();
-        logger.info(rep);
+        resource.delete();
+        logger.trace("DELETE: " + resource.getReference() + " by resource " + resource.toString());
     }
 }

@@ -15,31 +15,60 @@
  */
 package io.s4.meter.controller.plugin.randomdoc;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import io.s4.meter.common.EventGenerator;
 import io.s4.meter.controller.ControllerModule;
 
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 
 public class RandomDocModule extends ControllerModule {
 
+    private static Logger logger = Logger.getLogger(RandomDocModule.class);
 
     protected void configure() {
         super.configure();
     }
-    
-    @Provides @Singleton
-    EventGenerator provideEventGenerator() {
-      EventGenerator gen = new RandomDocGenerator(
-              config.getString("s4Adaptor.hostname"),
-              config.getInt("s4Adaptor.port"),
-              config.getString("s4App.streamName"),
-              config.getString("s4App.eventClassName"),
-              config.getFloat("generator.eventRate"),
-              config.getInt("randomDocGenerator.wordSize"),
-              config.getInt("randomDocGenerator.numWordsPerDoc"),
-              config.getInt("randomDocGenerator.numEvents"));
-      return gen;
-    }
 
+    /*
+     * Provide a list with the generators that must be sent to remote hosts. The
+     * number of generators and the configuration is determined from the
+     * configuration file. All generators are configured identically except for
+     * the hostname and port of the S4 adaptor.
+     */
+    @Provides
+    @Singleton
+    List<EventGenerator> provideEventGenerators() throws Exception {
+
+        String[] hostnames = config.getStringArray("s4Adaptor.hostnames");
+        String[] ports = config.getStringArray("s4Adaptor.ports");
+        List<EventGenerator> eventGenerators = new ArrayList<EventGenerator>();
+        EventGenerator gen;
+
+        if (hostnames.length != ports.length) {
+            logger.error("Mismatched length: s4Adaptor.hostnames and s4Adaptor.ports");
+            throw new Exception();
+        }
+
+        int numAdaptors = hostnames.length;
+        for (int i = 0; i < numAdaptors; i++) {
+
+            gen = new RandomDocGenerator(hostnames[i], ports[i],
+                    config.getString("s4App.streamName"),
+                    config.getString("s4App.eventClassName"),
+                    config.getFloat("generator.eventRate"),
+                    config.getLong("generator.numEvents"),
+                    config.getInt("randomDocGenerator.wordSize"),
+                    config.getInt("randomDocGenerator.numWordsPerDoc"));
+
+            eventGenerators.add(gen);
+        }
+        return eventGenerators;
+    }
 }

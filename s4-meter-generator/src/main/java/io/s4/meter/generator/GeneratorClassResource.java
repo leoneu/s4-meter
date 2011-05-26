@@ -98,6 +98,8 @@ public class GeneratorClassResource extends BaseResource {
     @Delete
     public String deleteGenerator() {
         logger.info("Deleting event generator.");
+        if(generator != null)
+            generator.stop(); // Stop thread before removing reference.
         classLoaders = null;
         generator = null;
         generatorClass = null;

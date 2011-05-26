@@ -6,9 +6,8 @@ import io.s4.client.ReadMode;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Calendar;
-
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 @SuppressWarnings("serial")
@@ -16,25 +15,29 @@ public abstract class EventGenerator implements Serializable {
 
     private static Logger logger = Logger.getLogger(EventGenerator.class);
 
-    final private String hostName;
-    final private int port;
-    final protected String s4StreamName;
-    final protected String s4EventClassName;
-    final protected long eventPeriod;
-    transient protected Driver driver;
+    final private String hostname;
+    final private String port;
+    final private String s4StreamName;
+    final private String s4EventClassName;
+    final private long eventPeriod;
+    final private long numEvents;
+
+    transient private Driver driver;
     transient private long startTime;
     transient private long time;
     transient private long eventCount;
     transient private int modulus;
+    transient private boolean isInterrupted;
 
-    public EventGenerator(String hostName, int port, String s4StreamName,
-            String s4EventClassName, float eventRate) {
+    public EventGenerator(String hostname, String port, String s4StreamName,
+            String s4EventClassName, float eventRate, long numEvents) {
         super();
         this.port = port;
-        this.hostName = hostName;
+        this.hostname = hostname;
         this.s4StreamName = s4StreamName;
         this.s4EventClassName = s4EventClassName;
         this.eventPeriod = (long) (1000f / eventRate);
+        this.numEvents = numEvents;
     }
 
     /*
@@ -45,18 +48,19 @@ public abstract class EventGenerator implements Serializable {
             ClassNotFoundException {
 
         in.defaultReadObject();
-        init();
+        initInternal();
         logger.info("Initialized event generator.");
 
     }
 
-    protected void init() {
+    private void initInternal() {
 
         logger.info("Initializing S4 driver for EventGenerator.");
 
+        isInterrupted = false;
         eventCount = 0;
         modulus = (int) (10000f / (float) eventPeriod); // Every 10 secs.
-        driver = new Driver(hostName, port);
+        driver = new Driver(hostname, Integer.parseInt(port));
         driver.setReadMode(ReadMode.None);
         driver.setDebug(true); // set to true to debug.
 
@@ -75,28 +79,64 @@ public abstract class EventGenerator implements Serializable {
         }
     }
 
-    abstract public void start() throws InterruptedException;
+    public void start() throws InterruptedException, JSONException {
 
-    protected void send(JSONObject jsonDoc) throws InterruptedException {
+        /*
+         * Initialize the concrete class lazily to make sure all fields are set
+         * after serialization.
+         */
+        init();
+        
+        /* We use time in milliseconds to control the event rate. */
+        time = System.currentTimeMillis();
+        startTime = time;
+
+        /* Let's send the events to the adaptor. */
+        for (long i = 0; i < numEvents; i++) {
+            send(i);
+        }
+
+        /* Close driver connection. */
+        close();
+    }
+
+    protected void send(long eventID) throws InterruptedException,
+            JSONException {
 
         String avgRate;
+        JSONObject jsonDoc = getDocument(eventID);
+        time = System.currentTimeMillis();
+        long delta = (time - startTime) - (eventPeriod * eventCount);
+        if (delta < 0) {
 
-        if (eventCount == 0) {
+            /*
+             * Wait if we are transmitting faster than the target rate.
+             */
+            Thread.sleep(-delta);
+        }
 
-            /* Initialize when we send the first event. */
-            time = System.currentTimeMillis();
-            startTime = time;
+        Message m = new Message(s4StreamName, s4EventClassName,
+                jsonDoc.toString());
 
-        } else
-            while ((time - startTime) < (eventPeriod * eventCount)) {
+        if (isInterrupted) {
+            close();
+            throw new InterruptedException();
+        }
 
-                /*
-                 * Else, wait if we are transmitting faster than the target
-                 * rate.
-                 */
-                Thread.sleep(5);
-                time = System.currentTimeMillis();
-            }
+        try {
+            driver.send(m);
+        } catch (IOException e) {
+
+            logger.error("Could not send message using driver.", e);
+
+            avgRate = String.format("%8.2f",
+                    ((float) (eventCount * 1000) / (float) (time - startTime)));
+            logger.error("Event count: " + String.format("%10d", eventCount)
+                    + " time: "
+                    + String.format("%8d", (time - startTime) / 1000)
+                    + " avg rate: " + avgRate + "   " + jsonDoc.toString()
+                    + " " + s4StreamName + " " + s4EventClassName);
+        }
 
         if (logger.isTraceEnabled() && (eventCount % modulus) == 0) {
 
@@ -114,24 +154,12 @@ public abstract class EventGenerator implements Serializable {
                     + " " + s4StreamName + " " + s4EventClassName);
         }
         eventCount++;
+    }
 
-        Message m = new Message(s4StreamName, s4EventClassName,
-                jsonDoc.toString());
-        try {
-            driver.send(m);
-        } catch (IOException e) {
-            
-            logger.error("Could not send message using driver.", e);
+    public void stop() {
 
-            avgRate = String.format("%8.2f",
-                    ((float) (eventCount * 1000) / (float) (time - startTime)));
-            logger.error("Event count: " + String.format("%10d", eventCount)
-                    + " time: "
-                    + String.format("%8d", (time - startTime) / 1000)
-                    + " avg rate: " + avgRate + "   " + jsonDoc.toString()
-                    + " " + s4StreamName + " " + s4EventClassName);
-            
-        }
+        isInterrupted = true;
+
     }
 
     public void close() {
@@ -146,14 +174,14 @@ public abstract class EventGenerator implements Serializable {
     /**
      * @return the hostName
      */
-    public String getHostName() {
-        return hostName;
+    public String getHostname() {
+        return hostname;
     }
 
     /**
      * @return the port
      */
-    public int getPort() {
+    public String getPort() {
         return port;
     }
 
@@ -188,4 +216,9 @@ public abstract class EventGenerator implements Serializable {
     public float getEventCount() {
         return eventCount;
     }
+
+    abstract protected JSONObject getDocument(long eventID)
+            throws JSONException;
+
+    abstract protected void init();
 }

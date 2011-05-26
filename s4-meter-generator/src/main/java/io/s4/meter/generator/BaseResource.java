@@ -1,5 +1,7 @@
 package io.s4.meter.generator;
 
+import io.s4.meter.common.EventGenerator;
+
 import java.util.List;
 
 import org.restlet.resource.ServerResource;
@@ -13,7 +15,8 @@ abstract class BaseResource extends ServerResource {
     
     static Class<?> generatorClass = null;
     static List<ClassLoader> classLoaders = null;
-    static Object generator = null;
+    static EventGenerator generator = null;
+    static Thread generatorThread = null;
 
     /**
      * @return the generatorClass
@@ -28,12 +31,4 @@ abstract class BaseResource extends ServerResource {
     public void setGeneratorClass(Class<?> generatorClass) {
         BaseResource.generatorClass = generatorClass;
     }
-    
-    /**
-     * @param generatorClass the generatorClass to set
-     */
-    public void resetGenerator() {
-        classLoaders = null;
-    }
-
 }

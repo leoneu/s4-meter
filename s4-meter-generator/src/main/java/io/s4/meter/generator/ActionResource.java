@@ -34,11 +34,27 @@ public class ActionResource extends BaseResource {
 
         Form queryParams = getQuery();
         Parameter param;
-        
         param = queryParams.getFirst("start");
         if (param != null) {
+
             /* Run!. */
-            generatorClass.getMethod("start").invoke(generator);
+            Runnable r = new Runnable() {
+                public void run() {
+                    try {
+                        generator.start();
+                    } catch (InterruptedException e) {
+                        logger.info("Process stopped. Terminating.", e);
+                    } catch (Exception e) {
+                        logger.error("Couldn't start thread", e);
+                    } finally {
+                        generator.close();
+                    }
+                }
+            };
+
+            generatorThread = new Thread(r);
+            generatorThread.start();
+
             logger.info("Received action: " + param.getName() + "  "
                     + param.getValue());
             return param.getName();

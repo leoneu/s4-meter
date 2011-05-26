@@ -24,21 +24,31 @@ import io.s4.meter.common.EventGenerator;
 @SuppressWarnings("serial")
 public class RandomDocGenerator extends EventGenerator {
 
-    private static Logger logger = Logger
-    .getLogger(RandomDocGenerator.class);
-    
-    final int wordSize;
-    final int numWordsPerDoc;
-    final int numEvents;
+    private static Logger logger = Logger.getLogger(RandomDocGenerator.class);
 
-    public RandomDocGenerator(String hostName, int port, String s4StreamName,
-            String s4EventClassName, float eventRate, int wordSize, int numWordsPerDoc,
-            int numEvents) {
-        super(hostName, port, s4StreamName, s4EventClassName, eventRate);
+    final private int wordSize;
+    final private int numWordsPerDoc;
+    transient private RandomWord wg;
+
+    public RandomDocGenerator(String hostname, String port,
+            String s4StreamName, String s4EventClassName, float eventRate,
+            long numEvents, int wordSize, int numWordsPerDoc) {
+        super(hostname, port, s4StreamName, s4EventClassName, eventRate,
+                numEvents);
 
         this.wordSize = wordSize;
         this.numWordsPerDoc = numWordsPerDoc;
-        this.numEvents = numEvents;
+    }
+
+    /*
+     * The init method is called by the base class after the non-transient
+     * fields are set.
+     */
+    @Override
+    protected void init() {
+
+        logger.info("Started RandomDoc event generator.");
+        wg = new RandomWord(0, wordSize);
     }
 
     /*
@@ -47,37 +57,42 @@ public class RandomDocGenerator extends EventGenerator {
      * @see io.s4.meter.common.EventGenerator#start()
      */
     @Override
-    public void start() throws InterruptedException {
+    protected JSONObject getDocument(long eventID) throws JSONException {
 
         JSONObject jsonDoc;
-        logger.info("Started event generator.");
+        StringBuilder words = new StringBuilder();
 
-        RandomWord wg = new RandomWord(0, wordSize);
-        StringBuilder words;
-
-        /* Generate events. */
-        for (int i = 0; i < numEvents; i++) {
-
-            /* Generate document content. */
-            words = new StringBuilder();
-            for (int j = 0; j < numWordsPerDoc; j++) {
-                words.append(wg.getWord());
-                words.append(" ");
-            }
-
-            try {
-                /* Create JSON doc. */
-                jsonDoc = new JSONObject();
-                jsonDoc.put("id", new Integer(i));
-                jsonDoc.put("text", words.toString());
-
-                /* Send event. */
-                send(jsonDoc);
-
-            } catch (JSONException ex) {
-                logger.error("Couldn't create document.");
-                ex.printStackTrace(System.err);
-            }
+        for (int j = 0; j < numWordsPerDoc; j++) {
+            words.append(wg.getWord());
+            words.append(" ");
         }
+
+        /* Create JSON doc. */
+        jsonDoc = new JSONObject();
+        jsonDoc.put("id", new Long(eventID));
+        jsonDoc.put("text", words.toString());
+
+        /* Send event. */
+        return jsonDoc;
+
     }
+
+    /**
+     * @return the wordSize
+     */
+    public int getWordSize() {
+        return wordSize;
+    }
+
+    /**
+     * @return the numWordsPerDoc
+     */
+    public int getNumWordsPerDoc() {
+        return numWordsPerDoc;
+    }
+
+    public String toString() {
+        return String.valueOf(numWordsPerDoc) + " " + String.valueOf(wordSize);
+    }
+
 }
