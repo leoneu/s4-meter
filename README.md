@@ -6,7 +6,7 @@ performance tests on S4 clusters.
 
 S4 Meter manages multiple remote event generators from a central process. The remote event generators are hosted by a container whose only function is to communicate with the controller, pass commands to the genartor, and manage connections to the S4 Client Adapter using the S4 Client Driver. In preparation for a load test, the controller uploads a preconfigured event generator object to the remote generator containers. An instance of event generator can only be used once. To run another test, create a new instance and redeploy. To start a test, the controller sends a command to the remote generators using a REST interface. The event generation logic is implemented by extending the abstract EventGenerator class. S4 Meter provides a reference implementation in the package `io.s4.meter.controller.plugin.randomdoc`. Once a test is completed, the results are sent back to the remote generators and from there back to the controller which can aggregate and produce final reports for each test.
 
-![S4 Meter Architecture](https://github.com/leoneu/s4-meter/blob/master/etc/s4-meter.jpg)
+![S4 Meter Architecture](https://github.com/leoneu/s4-meter/raw/master/etc/s4-meter.jpg)
 
 Running Custom Tests
 --------------------
