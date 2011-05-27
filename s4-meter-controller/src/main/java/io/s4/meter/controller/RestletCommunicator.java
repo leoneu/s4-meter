@@ -27,6 +27,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.restlet.resource.ClientResource;
 
+/**
+ * Implements {@link Communicator} interface using the Restlet toolkit.
+ * 
+ * @author Leo Neumeyer
+ *
+ */
 class RestletCommunicator implements Communicator {
 
     private static Logger logger = Logger.getLogger(RestletCommunicator.class);
@@ -38,6 +44,28 @@ class RestletCommunicator implements Communicator {
     final private String[] ports;
     private Class<?>[] classes;
 
+    /**
+     * Creates an implementation of the {@link Communicator}. This is the only
+     * way to create an instance.
+     * 
+     * @param hosts
+     *            the remote generators hostnames.
+     * @param ports
+     *            the remote generators ports.
+     * @param classURI
+     *            the URI used to upload the custom generator class and
+     *            dependent classes.
+     * @param instanceURI
+     *            the URI used to upload the generator object.
+     * @param actionURI
+     *            the URI for sending commands to the remote generators.
+     * @param eventGeneratorClassname
+     *            the class name of the custom event generator.
+     * @param dependentClassnames
+     *            the class names of the classes used by the event generator
+     *            that are not available in the classpath of the remote event
+     *            generators.
+     */
     public RestletCommunicator(String[] hosts, String[] ports, String classURI,
             String instanceURI, String actionURI, String eventGeneratorClassname,
             String[] dependentClassnames) {
@@ -172,7 +200,7 @@ class RestletCommunicator implements Communicator {
     }
 
     /* Reset generator. */
-    void reset(ClientResource resource) {
+    private void reset(ClientResource resource) {
         resource.delete();
         logger.trace("DELETE: " + resource.getReference() + " by resource " + resource.toString());
     }

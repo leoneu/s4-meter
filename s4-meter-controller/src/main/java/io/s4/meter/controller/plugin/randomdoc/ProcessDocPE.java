@@ -17,6 +17,12 @@ package io.s4.meter.controller.plugin.randomdoc;
 
 import io.s4.processor.AbstractPE;
 
+/**
+ * PE that parses incoming documents. 
+ * 
+ * @author Leo Neumeyer
+ *
+ */
 public class ProcessDocPE extends AbstractPE {
 
     public void processEvent(Document doc) {

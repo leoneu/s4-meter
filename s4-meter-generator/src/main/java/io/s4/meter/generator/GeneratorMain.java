@@ -21,18 +21,30 @@ import org.apache.log4j.Logger;
 
 import com.google.inject.Guice;
 
-
+/**
+ * The generator container.
+ * 
+ * @author Leo Neumeyer
+ * 
+ */
 public class GeneratorMain {
 
     private static Logger logger = Logger.getLogger("io.s4.meter");
 
+    /**
+     * Starts the generator container service.
+     * 
+     * @param args
+     *            accepts a port number as a command line parameter.
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
-        
+
         /* Set up logger basic configuration. */
         BasicConfigurator.configure();
         logger.setLevel(Level.TRACE);
-        
-        if(args.length > 0)
+
+        if (args.length > 0)
             System.setProperty("generator.port", args[0]);
 
         /* Start service. */

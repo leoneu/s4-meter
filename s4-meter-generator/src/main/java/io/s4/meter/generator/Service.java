@@ -15,6 +15,12 @@
  */
 package io.s4.meter.generator;
 
+/**
+ * The service interface.
+ * 
+ * @author Leo Neumeyer
+ * 
+ */
 public interface Service {
 
 }

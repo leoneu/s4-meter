@@ -24,6 +24,12 @@ import org.apache.log4j.BasicConfigurator;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+/**
+ * Instantiates and configures the controller singleton.
+ * 
+ * @author Leo Neumeyer
+ *
+ */
 public class Main {
 
     private static Logger logger = Logger.getLogger("io.s4.meter");

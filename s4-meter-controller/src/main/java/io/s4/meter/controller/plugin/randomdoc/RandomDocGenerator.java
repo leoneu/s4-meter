@@ -21,6 +21,15 @@ import org.json.JSONObject;
 
 import io.s4.meter.common.EventGenerator;
 
+/**
+ * Custom event generator. Send documents comprised of words separated by spaces
+ * and words comprised of random characters based on a predefined dictionary.
+ * 
+ * This class was intended for performance evaluation applications.
+ * 
+ * @author Leo Neumeyer
+ * 
+ */
 @SuppressWarnings("serial")
 public class RandomDocGenerator extends EventGenerator {
 
@@ -30,9 +39,20 @@ public class RandomDocGenerator extends EventGenerator {
     final private int numWordsPerDoc;
     transient private RandomWord wg;
 
-    public RandomDocGenerator(String hostname, String port,
-            String s4StreamName, String s4EventClassName, float eventRate,
-            long numEvents, int wordSize, int numWordsPerDoc) {
+    /**
+     * The generator can only be created using this constructor.
+     * 
+     * @param wordSize
+     *            the number of characters in a word.
+     * @param numWordsPerDoc
+     *            the number of words in a document.
+     * @see io.s4.meter.common.EventGenerator#EventGenerator(String hostname,
+     *      String port, String s4StreamName, String s4EventClassName, float
+     *      eventRate, long numEvents)
+     */
+    RandomDocGenerator(String hostname, String port, String s4StreamName,
+            String s4EventClassName, float eventRate, long numEvents,
+            int wordSize, int numWordsPerDoc) {
         super(hostname, port, s4StreamName, s4EventClassName, eventRate,
                 numEvents);
 
@@ -43,6 +63,8 @@ public class RandomDocGenerator extends EventGenerator {
     /*
      * The init method is called by the base class after the non-transient
      * fields are set.
+     * 
+     * @see io.s4.meter.common.EventGenerator#init()
      */
     @Override
     protected void init() {
@@ -52,7 +74,6 @@ public class RandomDocGenerator extends EventGenerator {
     }
 
     /*
-     * (non-Javadoc)
      * 
      * @see io.s4.meter.common.EventGenerator#start()
      */
@@ -90,9 +111,4 @@ public class RandomDocGenerator extends EventGenerator {
     public int getNumWordsPerDoc() {
         return numWordsPerDoc;
     }
-
-    public String toString() {
-        return String.valueOf(numWordsPerDoc) + " " + String.valueOf(wordSize);
-    }
-
 }

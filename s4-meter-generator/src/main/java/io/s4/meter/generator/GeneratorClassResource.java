@@ -18,7 +18,6 @@ package io.s4.meter.generator;
 import io.s4.meter.common.NetworkClassLoader;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 import org.restlet.data.MediaType;
@@ -28,13 +27,27 @@ import org.restlet.representation.ObjectRepresentation;
 import org.restlet.resource.Delete;
 import org.restlet.resource.Post;
 
+/**
+ * This class implements the following methods:
+ * <ul>
+ * <li><em>POST:</em> - Accepts classes as byte arrays and loads them using a
+ * custom class loader. The implementation of {@link EventGenerator} is found
+ * and assigned to {@link generatorClass}. The class loader is assigned to
+ * {@link classLoader}.
+ * <li><em>DELETE:</em> - Completely removes the event generator and leaves the
+ * container ready to accept a new event generator.
+ * </ul>
+ * 
+ * @author Leo Neumeyer
+ * 
+ */
 public class GeneratorClassResource extends BaseResource {
 
     private static Logger logger = Logger
             .getLogger(GeneratorClassResource.class);
 
     /**
-     * Handle POST requests.
+     * Handles POST requests.
      * 
      * @throws IOException
      */
@@ -42,7 +55,6 @@ public class GeneratorClassResource extends BaseResource {
     public void acceptGeneratorClass(Representation entity) throws IOException {
 
         byte[] classBytes;
-        NetworkClassLoader cl = null;
 
         try {
 
@@ -53,18 +65,12 @@ public class GeneratorClassResource extends BaseResource {
                 classBytes = rep.getObject();
 
                 /* Load the event generator class. */
-                if (classLoaders == null) {
-                    classLoaders = new ArrayList<ClassLoader>();
-                    cl = new NetworkClassLoader(this.getClass()
+                if (classLoader == null) {
+                    classLoader = new NetworkClassLoader(this.getClass()
                             .getClassLoader());
-
-                    /* Add only first Class Loader to list. */
-                    classLoaders.add(cl);
-                } else {
-                    cl = (NetworkClassLoader) classLoaders.get(0);
                 }
-                Class<?> acceptedClass = cl.loadClass(null, classBytes, 0,
-                        classBytes.length);
+                Class<?> acceptedClass = ((NetworkClassLoader) classLoader)
+                        .loadClass(null, classBytes, 0, classBytes.length);
                 logger.trace("genclass: " + acceptedClass.toString());
                 logger.trace("genclass classloader: "
                         + acceptedClass.getClassLoader().toString());
@@ -94,13 +100,18 @@ public class GeneratorClassResource extends BaseResource {
         setStatus(Status.SUCCESS_OK);
     }
 
-    /* Reset the service. Loaded classes are removed. */
+    /*
+     * Resets the service. All previously uploaded event generator classes and
+     * objects and dependent classes and objects are removed.
+     * 
+     * @return confirmation message.
+     */
     @Delete
     public String deleteGenerator() {
         logger.info("Deleting event generator.");
-        if(generator != null)
+        if (generator != null)
             generator.stop(); // Stop thread before removing reference.
-        classLoaders = null;
+        classLoader = null;
         generator = null;
         generatorClass = null;
         return "Deleted event generator.";

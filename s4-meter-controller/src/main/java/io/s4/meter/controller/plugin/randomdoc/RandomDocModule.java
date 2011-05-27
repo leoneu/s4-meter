@@ -23,15 +23,22 @@ import org.apache.log4j.Logger;
 import io.s4.meter.common.EventGenerator;
 import io.s4.meter.controller.ControllerModule;
 
-import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
 
+/**
+ * This module is used to configure a reference implementation of {@link EventGenerator}.
+ * 
+ * @author Leo Neumeyer
+ *
+ */
 public class RandomDocModule extends ControllerModule {
 
     private static Logger logger = Logger.getLogger(RandomDocModule.class);
 
+    /* (non-Javadoc)
+     * @see io.s4.meter.controller.ControllerModule#configure()
+     */
     protected void configure() {
         super.configure();
     }
@@ -39,8 +46,12 @@ public class RandomDocModule extends ControllerModule {
     /*
      * Provide a list with the generators that must be sent to remote hosts. The
      * number of generators and the configuration is determined from the
-     * configuration file. All generators are configured identically except for
-     * the hostname and port of the S4 adaptor.
+     * properties file. All generators are configured identically except for the
+     * hostname and port of the S4 adaptor.
+     * 
+     * @return list of configured event generators.
+     * 
+     * @throws Exception
      */
     @Provides
     @Singleton

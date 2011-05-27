@@ -22,35 +22,50 @@ import org.restlet.Restlet;
 import org.restlet.data.Protocol;
 import org.restlet.routing.Router;
 
-public class RestletApp extends Application implements Service {
+/**
+ * This is the top level Restlet application where we set up the protocol, bind
+ * URIs to resources, etc.
+ * 
+ * @author Leo Neumeyer
+ * 
+ */
+class RestletApp extends Application implements Service {
 
     private static Logger logger = Logger
-    .getLogger("io.s4.meter.generator.RestletApp");
-    
+            .getLogger("io.s4.meter.generator.RestletApp");
+
     final private String generatorInstanceURI;
     final private String generatorClassURI;
     final private String generatorActionURI;
-    
-    RestletApp(
-            int port,
-            String generatorClassURI,
-            String generatorInstanceURI,
+
+    /**
+     * @param port
+     *            the port for this service
+     * @param generatorClassURI
+     *            the URI for uploading classes
+     * @param generatorInstanceURI
+     *            the URI for uploaded an instance of {@link EventGenerator}
+     * @param generatorActionURI
+     *            the URI for sending actions to the remote generator.
+     */
+    public RestletApp(int port, String generatorClassURI, String generatorInstanceURI,
             String generatorActionURI) {
         super();
-        
+
         this.generatorInstanceURI = generatorInstanceURI;
         this.generatorClassURI = generatorClassURI;
         this.generatorActionURI = generatorActionURI;
-        
+
         // Create a new Component.
         Component component = new Component();
 
         // Add a new HTTP server listening on port.
         component.getServers().add(Protocol.HTTP, port);
 
-        // Increase the number of connections. 
-        component.getServers().getContext().getParameters().add("maxTotalConnections", "50");
-        
+        // Increase the number of connections.
+        component.getServers().getContext().getParameters()
+                .add("maxTotalConnections", "50");
+
         component.getDefaultHost().attach(this);
 
         // Start the component.
@@ -61,21 +76,21 @@ public class RestletApp extends Application implements Service {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Creates a root Restlet that will receive all incoming calls.
      */
     @Override
     public synchronized Restlet createInboundRoot() {
-        
+
         /* Create a router Restlet that defines routes. */
         Router router = new Router(getContext());
 
         /* Defines a routes. */
         router.attach(generatorInstanceURI, GeneratorResource.class);
         router.attach(generatorClassURI, GeneratorClassResource.class);
-        router.attach(generatorActionURI, ActionResource.class);  
-      
+        router.attach(generatorActionURI, ActionResource.class);
+
         return router;
     }
 }

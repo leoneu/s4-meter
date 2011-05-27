@@ -20,9 +20,34 @@ import java.util.List;
 
 import io.s4.meter.common.EventGenerator;
 
+/**
+ * 
+ * A communication interface to communicate with remote generators.
+ * 
+ * @author Leo Neumeyer
+ */
 public interface Communicator {
 
+    /**
+     * Send custom generator classes to the remote generator containers.
+     * 
+     * @throws IOException
+     */
     void sendClasses() throws IOException;
+
+    /**
+     * Tells remote generators to start generating events.
+     * 
+     * @throws IOException
+     */
     void start() throws IOException;
+
+    /**
+     * @param generators
+     *            the list of configured generators that will be sent to all the
+     *            remote generator containers.
+     * 
+     * @throws Exception
+     */
     void sendGenerator(List<EventGenerator> generators) throws Exception;
 }

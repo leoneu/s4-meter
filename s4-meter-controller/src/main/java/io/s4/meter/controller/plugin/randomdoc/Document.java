@@ -17,6 +17,12 @@ package io.s4.meter.controller.plugin.randomdoc;
 
 import java.io.Serializable;
 
+/**
+ * A data class for sending text documents.
+ * 
+ * @author Leo Neumeyer
+ *
+ */
 @SuppressWarnings("serial")
 public class Document  implements Serializable {
     private long id;

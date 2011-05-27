@@ -22,11 +22,36 @@ import org.restlet.data.Form;
 import org.restlet.data.Parameter;
 import org.restlet.resource.Get;
 
+/**
+ * Resource for processing actions.The actions are executed using a REST
+ * interface. The URI is set the in the properties file read by
+ * {@link GeneratorModule}.
+ * 
+ * <ul>
+ * 
+ * <li><em>start</em> - start the event generator. on a separate thread.
+ * 
+ * </ul>
+ * 
+ * @author Leo Neumeyer
+ * 
+ */
 public class ActionResource extends BaseResource {
 
     private static Logger logger = Logger.getLogger(ActionResource.class);
 
-    /* Reset the service. Loaded classes are removed. */
+    /**
+     * 
+     * Parse the action command received in an HTTP Get method and execute the
+     * command.
+     * 
+     * @return the parameter that was received in the action URI.
+     * @throws IllegalArgumentException
+     * @throws SecurityException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     */
     @Get
     public String action() throws IllegalArgumentException, SecurityException,
             IllegalAccessException, InvocationTargetException,

@@ -30,10 +30,28 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Named;
 
-public class Controller {
+/**
+ * 
+ * Orchestrates workflow among the various components and provides a centralized
+ * API for the distributed system.
+ * 
+ * Typically a controller singleton would configure generators, send them to
+ * remote hosts, start the event generation process, collect results, and
+ * produce reports.
+ * 
+ * @author Leo Neumeyer
+ */
+class Controller {
 
     final private String moduleName;
 
+    /**
+     * The generator module used to inject dependencies.
+     * 
+     * Because this module is provided by the application developer as a plugin,
+     * we don't know the name of the module class. Instead we use a Guice named
+     * annotation to retrieve the name of the module.
+     */
     @Inject
     public Controller(@Named("generator.module") String moduleName) {
         this.moduleName = moduleName;
@@ -53,10 +71,11 @@ public class Controller {
             logger.error("Unable to instantiate module.", e);
         }
 
+        /* After some indirection we get the injector. */
         injector = Guice.createInjector(module);
 
         /*
-         * Create the Event Generator objects using Injection. The generators
+         * Create the Event Generator objects using injection. The generators
          * will be serialized and sent to remote hosts.
          */
         List<EventGenerator> generators = injector.getInstance(Key

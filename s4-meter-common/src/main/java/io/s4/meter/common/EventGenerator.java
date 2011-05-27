@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2011 Yahoo! Inc. All rights reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific
+ * language governing permissions and limitations under the
+ * License. See accompanying LICENSE file. 
+ */
 package io.s4.meter.common;
 
 import io.s4.client.Driver;
@@ -10,6 +25,26 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * 
+ * Generates events in JSON format using pluggable event generation logic
+ * provided by the application developer.
+ * 
+ * This class was designed primarily to implement distributed performance
+ * testing of the S4 cluster. Instances can be created by a central process and
+ * sent to remote generator containers where they are de-serialized and started.
+ * 
+ * By design, event generators are disposable objects. That is, event generators
+ * are created with an immutable configuration used once to generate events, and
+ * discarded. Create a new instance of <code>EventGenerator</code> every time a
+ * new event stream is needed.
+ * 
+ * This is a base class that needs to be extended by the application developer.
+ * The concrete class is required to implement the <code>init</code> and
+ * <code>getDocument</code> methods.
+ * 
+ * @author Leo Neumeyer
+ */
 @SuppressWarnings("serial")
 public abstract class EventGenerator implements Serializable {
 
@@ -28,8 +63,31 @@ public abstract class EventGenerator implements Serializable {
     transient private long eventCount;
     transient private int modulus;
     transient private boolean isInterrupted;
+    transient private boolean isStarted;
 
-    public EventGenerator(String hostname, String port, String s4StreamName,
+    /**
+     * Instances can only be created using this constructor. No setter methods
+     * are provided.
+     * 
+     * @param hostname
+     *            the hostname of the S4 client adaptor server.
+     * @param port
+     *            the port of the S4 client adaptor server.
+     * @param s4StreamName
+     *            the stream name used in the S4 application that will process
+     *            the incoming events.
+     * @param s4EventClassName
+     *            the name of the event class to which the JSON events must be
+     *            converted.
+     * @param eventRate
+     *            the target event rate. May not be achieved if sufficient
+     *            resources are not available.
+     * @param numEvents
+     *            the total number of events that will be generated.
+     * 
+     * 
+     */
+    protected EventGenerator(String hostname, String port, String s4StreamName,
             String s4EventClassName, float eventRate, long numEvents) {
         super();
         this.port = port;
@@ -56,13 +114,18 @@ public abstract class EventGenerator implements Serializable {
     private void initInternal() {
 
         logger.info("Initializing S4 driver for EventGenerator.");
-
+        isStarted = true;
+        isStarted = false;
         isInterrupted = false;
         eventCount = 0;
         modulus = (int) (10000f / (float) eventPeriod); // Every 10 secs.
-        driver = new Driver(hostname, Integer.parseInt(port));
+        setDriver(new Driver(hostname, Integer.parseInt(port)));
         driver.setReadMode(ReadMode.None);
-        driver.setDebug(true); // set to true to debug.
+
+        if (logger.isDebugEnabled())
+            driver.setDebug(false);
+        else
+            driver.setDebug(true);
 
         try {
             if (!driver.init()) {
@@ -79,14 +142,28 @@ public abstract class EventGenerator implements Serializable {
         }
     }
 
-    public void start() throws InterruptedException, JSONException {
+    /**
+     * Starts the event generator in the remote host. Calls the
+     * <code>init</code> method in the concrete class, sends
+     * <code>numEvents</code> events using the S4 driver, and closes the
+     * connection to the S4 driver.
+     * 
+     * @throws Exception
+     */
+    public void start() throws Exception {
+
+        if (isStarted) {
+            logger.error("Event generator can only be started once. Create a new instance to start a new stream.");
+            throw new Exception();
+        }
+        isStarted = true;
 
         /*
          * Initialize the concrete class lazily to make sure all fields are set
          * after serialization.
          */
         init();
-        
+
         /* We use time in milliseconds to control the event rate. */
         time = System.currentTimeMillis();
         startTime = time;
@@ -100,8 +177,12 @@ public abstract class EventGenerator implements Serializable {
         close();
     }
 
-    protected void send(long eventID) throws InterruptedException,
-            JSONException {
+    /**
+     * @param eventID
+     * @throws InterruptedException
+     * @throws JSONException
+     */
+    private void send(long eventID) throws InterruptedException, JSONException {
 
         String avgRate;
         JSONObject jsonDoc = getDocument(eventID);
@@ -127,7 +208,7 @@ public abstract class EventGenerator implements Serializable {
             driver.send(m);
         } catch (IOException e) {
 
-            logger.error("Could not send message using driver.", e);
+            logger.error("Unable not send a message using the S4 driver.", e);
 
             avgRate = String.format("%8.2f",
                     ((float) (eventCount * 1000) / (float) (time - startTime)));
@@ -156,12 +237,19 @@ public abstract class EventGenerator implements Serializable {
         eventCount++;
     }
 
+    /**
+     * Stops the event generation process when a process is active and safely
+     * closes the connection to the S4 client adaptor. Does nothing otherwise.
+     */
     public void stop() {
 
         isInterrupted = true;
 
     }
 
+    /**
+     * Closes the connection to the S4 client adaptor.
+     */
     public void close() {
         try {
             if (driver != null)
@@ -172,21 +260,21 @@ public abstract class EventGenerator implements Serializable {
     }
 
     /**
-     * @return the hostName
+     * @return the hostname of the S4 client adaptor.
      */
     public String getHostname() {
         return hostname;
     }
 
     /**
-     * @return the port
+     * @return the port of the S4 client adaptor.
      */
     public String getPort() {
         return port;
     }
 
     /**
-     * @return the S4 client driver
+     * @return the S4 client driver.
      */
     public Driver getDriver() {
         return driver;
@@ -194,14 +282,14 @@ public abstract class EventGenerator implements Serializable {
 
     /**
      * @param driver
-     *            the S4 client driver to set
+     *            the S4 client driver.
      */
-    public void setDriver(Driver driver) {
+    final private void setDriver(Driver driver) {
         this.driver = driver;
     }
 
     /**
-     * @return the eventRate
+     * @return the eventRate.
      */
     public float getEventRate() {
         if (time - startTime > 0)
@@ -217,8 +305,20 @@ public abstract class EventGenerator implements Serializable {
         return eventCount;
     }
 
+    /**
+     * Implements the event generation logic.
+     * 
+     * @param eventID
+     *            the eventID is a positive number between <code>0</code> and
+     *            <code>numEvents</code>.
+     * @return JSONObject the document to be sent to the S4 client adaptor.
+     * @throws JSONException
+     */
     abstract protected JSONObject getDocument(long eventID)
             throws JSONException;
 
+    /**
+     * Implements initialization logic for the <code>getDocument</code> method.
+     */
     abstract protected void init();
 }

@@ -28,6 +28,14 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 
+/**
+ * Configures the controller.
+ * 
+ * Reads a properties file, provides a {@link Communicator} singleton, and
+ * configures Guice bindings.
+ * 
+ * @author Leo Neumeyer
+ */
 public class ControllerModule extends AbstractModule {
 
     protected PropertiesConfiguration config = null;
@@ -62,15 +70,18 @@ public class ControllerModule extends AbstractModule {
                 .toInstance(config.getString("generator.module"));
     }
 
+    /**
+     * @return the communicator singleton.
+     */
     @Provides
     @Singleton
     Communicator provideCommunicator() {
         Communicator comm = new RestletCommunicator(
                 config.getStringArray("generator.hostnames"),
-                config.getStringArray("generator.ports"), 
-                config.getString("generator.classURI").trim(),
-                config.getString("generator.instanceURI").trim(), 
-                config.getString("generator.actionURI").trim(),
+                config.getStringArray("generator.ports"), config.getString(
+                        "generator.classURI").trim(), config.getString(
+                        "generator.instanceURI").trim(), config.getString(
+                        "generator.actionURI").trim(),
                 config.getString("generator.eventGeneratorClass"),
                 config.getStringArray("generator.dependentClasses"));
         return comm;

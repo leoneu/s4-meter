@@ -20,7 +20,6 @@ import io.s4.meter.common.SerializationUtils;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.restlet.data.MediaType;
 import org.restlet.data.Status;
@@ -28,6 +27,17 @@ import org.restlet.representation.Representation;
 import org.restlet.representation.ObjectRepresentation;
 import org.restlet.resource.Post;
 
+
+/**
+ * This class implements the following methods:
+ * <ul>
+ * <li><em>POST:</em> - Accepts the generator object graph as byte array which is deserialized and initiated. The generator object is assigned to 
+ * {@link generator}.
+ * </ul>
+ * 
+ * @author Leo Neumeyer
+ * 
+ */
 public class GeneratorResource extends BaseResource {
 
     private static Logger logger = Logger
@@ -44,7 +54,7 @@ public class GeneratorResource extends BaseResource {
      * @throws IllegalAccessException
      */
     @Post
-    public void acceptGenerator(Representation entity) throws IOException,
+public void acceptGenerator(Representation entity) throws IOException,
             IllegalArgumentException, SecurityException,
             InvocationTargetException, NoSuchMethodException,
             ClassNotFoundException, InstantiationException,
@@ -62,16 +72,12 @@ public class GeneratorResource extends BaseResource {
 
             byte[] objectBuffer = rep.getObject();
 
-            if (logger.getLevel() == Level.TRACE) {
-                for (ClassLoader cl : classLoaders) {
-                    logger.trace("classloader in list: " + cl.toString());
-                }
-            }
+                    logger.trace("classloader: " + classLoader.toString());
 
             /* Deserialize using the custom class loader. */
             try {
                 generator = (EventGenerator) SerializationUtils
-                        .deserialize(objectBuffer, classLoaders);                
+                        .deserialize(objectBuffer, classLoader);                
             } catch (ClassNotFoundException e) {
                 logger.error("Couldn't find class loader for deserialization.");
             }
