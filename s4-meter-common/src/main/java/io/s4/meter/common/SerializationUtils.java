@@ -99,7 +99,7 @@ public class SerializationUtils {
      * Same as {@link #deserialize(byte[], List)}
      * @param bytes
      * @param customClassLoader
-     * @return
+     * @return the deserialized object.
      * @throws ClassNotFoundException
      * @see #deserialize(byte[], List)
      */
