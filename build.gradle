@@ -67,7 +67,7 @@ subprojects {
        
     repositories {
         flatDir name: 's4core', dirs:  "${s4Image}/s4-core/lib"
-        flatDir name: 's4driver', dirs:  "${s4Image}/s4-driver/lib/java"
+        flatDir name: 's4driver', dirs:  "${s4Image}/s4-driver/lib"
         mavenRepo name: "restlet_repo", urls: "http://maven.restlet.org"
         mavenLocal()
         mavenCentral()
