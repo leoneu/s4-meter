@@ -76,12 +76,14 @@ cd s4-meter
 gradlew install
 </pre>
 
+> The command `gradlew` will download a wrapper for the build tool `gradle` and make it available for this project. You may want to [install](http://www.gradle.org/downloads.html) `gradle` directly instead and use the command `gradle` directly.  
+
 Deploy
 ------
 
-This will install the S4 application in the $S4_IMAGE.
+This will install the S4-Meter reference application in the $S4_IMAGE.
 <pre>
-gradle deploy
+gradlew deploy
 </pre>
 
 Run
@@ -91,11 +93,11 @@ Start each command in a different window to see the updates on the standard outp
 
 <pre>
 # Start S4 server.
-$S4_IMAGE/scripts/s4-start.sh -r client-adapter &
+$S4_IMAGE/scripts/s4-start.sh -r client-adapter
 
 # Start S4 client adapter server.
 $S4_IMAGE/scripts/run-client-adapter.sh -s client-adapter \
--g s4 -x -d $S4_IMAGE/s4-core/conf/default/client-stub-conf.xml &
+-g s4 -x -d $S4_IMAGE/s4-core/conf/default/client-stub-conf.xml
 
 # Start a generator listening on port 8182.
 ./s4-meter-generator/build/install/s4-meter-generator/bin/s4-meter-generator 8182
@@ -125,12 +127,23 @@ To change the S4 application, edit the S4 configuration file.
 cat s4-meter-controller/src/main/resources/s4-meter-controller-conf.xml
 </pre>
 
+Other useful commands:
+
+Create an three eclipse projects (common, generator, controller):
+<pre>
+gradlew eclipse
+</pre>
+
+Create javadocs for the three projects:
+<pre>
+gradlew javadoc
+</pre>
 
 Implementation Details
 ----------------------
 
 Generators are controlled using a REST API. To implement the interface we used
-the Restlet framework (http://www.restlet.org) because it is lightweight and easy to use. The concrete
+the [Restlet](http://www.restlet.org) framework because it is lightweight and easy to use. The concrete
 classes used to generate events are loaded into the generators by the controller 
 every time a test starts. To write a new event generator follow the pattern in:
 
@@ -138,5 +151,17 @@ every time a test starts. To write a new event generator follow the pattern in:
 ls -l s4-meter-controller/src/main/java/io/s4/meter/controller/plugin/randomdoc
 </pre>
 
-In this project we used Guice (http://code.google.com/p/google-guice) for dependency injection. All the configuration 
+In this project we used [Guice](http://code.google.com/p/google-guice) for dependency injection. All the configuration 
 logic is implemented using Guice modules. 
+
+Troubleshooting
+---------------
+
+* Make sure scripts have executable permissions (chmod u+x myscript).
+* Make sure you set the environment variable S4_IMAGE in your shell. For this add the following to your .bashrc:
+
+<pre>
+# S4 Configuration
+S4_IMAGE=/home/leo/Projects/s4project/s4image/s4-0.3-SNAPSHOT
+export S4_IMAGE
+</pre>
