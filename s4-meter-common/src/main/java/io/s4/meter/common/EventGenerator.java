@@ -48,277 +48,281 @@ import org.json.JSONObject;
 @SuppressWarnings("serial")
 public abstract class EventGenerator implements Serializable {
 
-    private static Logger logger = Logger.getLogger(EventGenerator.class);
+	private static Logger logger = Logger.getLogger(EventGenerator.class);
 
-    final private String hostname;
-    final private String port;
-    final private String s4StreamName;
-    final private String s4EventClassName;
-    final private long eventPeriod;
-    final private long numEvents;
+	final private String hostname;
+	final private String port;
+	final private String s4StreamName;
+	final private String s4EventClassName;
+	final private long eventPeriod;
+	final private long numEvents;
 
-    transient private Driver driver;
-    transient private long startTime;
-    transient private long time;
-    transient private long eventCount;
-    transient private int modulus;
-    transient private boolean isInterrupted;
-    transient private boolean isStarted;
+	transient private Driver driver;
+	transient private long startTime;
+	transient private long time;
+	transient private long eventCount;
+	transient private int modulus;
+	transient private boolean isInterrupted;
+	transient private boolean isStarted;
 
-    /**
-     * Instances can only be created using this constructor. No setter methods
-     * are provided.
-     * 
-     * @param hostname
-     *            the hostname of the S4 client adaptor server.
-     * @param port
-     *            the port of the S4 client adaptor server.
-     * @param s4StreamName
-     *            the stream name used in the S4 application that will process
-     *            the incoming events.
-     * @param s4EventClassName
-     *            the name of the event class to which the JSON events must be
-     *            converted.
-     * @param eventRate
-     *            the target event rate. May not be achieved if sufficient
-     *            resources are not available.
-     * @param numEvents
-     *            the total number of events that will be generated.
-     * 
-     * 
-     */
-    protected EventGenerator(String hostname, String port, String s4StreamName,
-            String s4EventClassName, float eventRate, long numEvents) {
-        super();
-        this.port = port;
-        this.hostname = hostname;
-        this.s4StreamName = s4StreamName;
-        this.s4EventClassName = s4EventClassName;
-        this.eventPeriod = (long) (1000f / eventRate);
-        this.numEvents = numEvents;
-    }
+	/**
+	 * Instances can only be created using this constructor. No setter methods
+	 * are provided.
+	 * 
+	 * @param hostname
+	 *            the hostname of the S4 client adaptor server.
+	 * @param port
+	 *            the port of the S4 client adaptor server.
+	 * @param s4StreamName
+	 *            the stream name used in the S4 application that will process
+	 *            the incoming events.
+	 * @param s4EventClassName
+	 *            the name of the event class to which the JSON events must be
+	 *            converted.
+	 * @param eventRate
+	 *            the target event rate. May not be achieved if sufficient
+	 *            resources are not available.
+	 * @param numEvents
+	 *            the total number of events that will be generated.
+	 * 
+	 * 
+	 */
+	protected EventGenerator(String hostname, String port, String s4StreamName,
+			String s4EventClassName, float eventRate, long numEvents) {
+		super();
+		this.port = port;
+		this.hostname = hostname;
+		this.s4StreamName = s4StreamName;
+		this.s4EventClassName = s4EventClassName;
+		this.eventPeriod = (long) (1000f / eventRate);
+		this.numEvents = numEvents;
+	}
 
-    /*
-     * This method is called when the object is deserialized and can be used to
-     * initialized transient fields.
-     */
-    private void readObject(java.io.ObjectInputStream in) throws IOException,
-            ClassNotFoundException {
+	/*
+	 * This method is called when the object is deserialized and can be used to
+	 * initialized transient fields.
+	 */
+	private void readObject(java.io.ObjectInputStream in) throws IOException,
+			ClassNotFoundException {
 
-        in.defaultReadObject();
-        initInternal();
-        logger.info("Initialized event generator.");
+		in.defaultReadObject();
+		initInternal();
+		logger.info("Initialized event generator.");
 
-    }
+	}
 
-    private void initInternal() {
+	private void initInternal() {
 
-        logger.info("Initializing S4 driver for EventGenerator.");
-        isStarted = true;
-        isStarted = false;
-        isInterrupted = false;
-        eventCount = 0;
-        modulus = (int) (10000f / (float) eventPeriod); // Every 10 secs.
-        setDriver(new Driver(hostname, Integer.parseInt(port)));
-        driver.setReadMode(ReadMode.None);
+		logger.info("Initializing S4 driver for EventGenerator.");
+		isStarted = true;
+		isStarted = false;
+		isInterrupted = false;
+		eventCount = 0;
+		modulus = (int) (10000f / (float) eventPeriod); // Every 10 secs.
+		setDriver(new Driver(hostname, Integer.parseInt(port)));
+		driver.setReadMode(ReadMode.None);
 
-        if (logger.isDebugEnabled())
-            driver.setDebug(false);
-        else
-            driver.setDebug(true);
+		if (logger.isDebugEnabled())
+			driver.setDebug(false);
+		else
+			driver.setDebug(true);
 
-        try {
-            if (!driver.init()) {
-                logger.error("Driver initialization failed.");
-                System.exit(1);
-            }
+		try {
+			if (!driver.init()) {
+				logger.error("Driver initialization failed.");
+				System.exit(1);
+			}
 
-            if (!driver.connect()) {
-                logger.error("Driver initialization failed.");
-                System.exit(1);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+			if (!driver.connect()) {
+				logger.error("Driver initialization failed.");
+				System.exit(1);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-    /**
-     * Starts the event generator in the remote host. Calls the
-     * <code>init</code> method in the concrete class, sends
-     * <code>numEvents</code> events using the S4 driver, and closes the
-     * connection to the S4 driver.
-     * 
-     * @throws Exception
-     */
-    public void start() throws Exception {
+	/**
+	 * Starts the event generator in the remote host. Calls the
+	 * <code>init</code> method in the concrete class, sends
+	 * <code>numEvents</code> events using the S4 driver, and closes the
+	 * connection to the S4 driver.
+	 * 
+	 * @throws Exception
+	 */
+	public void start() throws Exception {
 
-        if (isStarted) {
-            logger.error("Event generator can only be started once. Create a new instance to start a new stream.");
-            throw new Exception();
-        }
-        isStarted = true;
+		if (isStarted) {
+			logger.error("Event generator can only be started once. Create a new instance to start a new stream.");
+			throw new Exception();
+		}
+		isStarted = true;
 
-        /*
-         * Initialize the concrete class lazily to make sure all fields are set
-         * after serialization.
-         */
-        init();
+		/*
+		 * Initialize the concrete class lazily to make sure all fields are set
+		 * after serialization.
+		 */
+		init();
 
-        /* We use time in milliseconds to control the event rate. */
-        time = System.currentTimeMillis();
-        startTime = time;
+		/* We use time in milliseconds to control the event rate. */
+		time = System.currentTimeMillis();
+		startTime = time;
 
-        /* Let's send the events to the adaptor. */
-        for (long i = 0; i < numEvents; i++) {
-            send(i);
-        }
+		/* Let's send the events to the adaptor. */
+		for (long i = 0; i < numEvents; i++) {
+			send(i);
+		}
 
-        /* Close driver connection. */
-        close();
-    }
+		/* Close driver connection. */
+		close();
+	}
 
-    /**
-     * @param eventID
-     * @throws InterruptedException
-     * @throws JSONException
-     */
-    private void send(long eventID) throws InterruptedException, JSONException {
+	/**
+	 * @param docId
+	 *            unique ID for this document
+	 * @throws InterruptedException
+	 * @throws JSONException
+	 */
+	private void send(long eventID) throws InterruptedException, JSONException {
 
-        String avgRate;
-        JSONObject jsonDoc = getDocument(eventID);
-        time = System.currentTimeMillis();
-        long delta = (time - startTime) - (eventPeriod * eventCount);
-        if (delta < 0) {
+		String avgRate;
+		StringBuilder docId = new StringBuilder();
+		docId.append(hostname).append("-").append(driver.hashCode()).append("-")
+				.append(eventID);
+		JSONObject jsonDoc = getDocument(docId.toString());
+		time = System.currentTimeMillis();
+		long delta = (time - startTime) - (eventPeriod * eventCount);
+		if (delta < 0) {
 
-            /*
-             * Wait if we are transmitting faster than the target rate.
-             */
-            Thread.sleep(-delta);
-        }
+			/*
+			 * Wait if we are transmitting faster than the target rate.
+			 */
+			Thread.sleep(-delta);
+		}
 
-        Message m = new Message(s4StreamName, s4EventClassName,
-                jsonDoc.toString());
+		Message m = new Message(s4StreamName, s4EventClassName,
+				jsonDoc.toString());
 
-        if (isInterrupted) {
-            close();
-            throw new InterruptedException();
-        }
+		if (isInterrupted) {
+			close();
+			throw new InterruptedException();
+		}
 
-        try {
-            driver.send(m);
-        } catch (IOException e) {
+		try {
+			driver.send(m);
+		} catch (IOException e) {
 
-            logger.error("Unable not send a message using the S4 driver.", e);
+			logger.error("Unable not send a message using the S4 driver.", e);
 
-            avgRate = String.format("%8.2f",
-                    ((float) (eventCount * 1000) / (float) (time - startTime)));
-            logger.error("Event count: " + String.format("%10d", eventCount)
-                    + " time: "
-                    + String.format("%8d", (time - startTime) / 1000)
-                    + " avg rate: " + avgRate + "   " + jsonDoc.toString()
-                    + " " + s4StreamName + " " + s4EventClassName);
-        }
+			avgRate = String.format("%8.2f",
+					((float) (eventCount * 1000) / (float) (time - startTime)));
+			logger.error("Event count: " + String.format("%10d", eventCount)
+					+ " time: "
+					+ String.format("%8d", (time - startTime) / 1000)
+					+ " avg rate: " + avgRate + "   " + jsonDoc.toString()
+					+ " " + s4StreamName + " " + s4EventClassName);
+		}
 
-        if (logger.isTraceEnabled() && (eventCount % modulus) == 0) {
+		if (logger.isTraceEnabled() && (eventCount % modulus) == 0) {
 
-            if (eventCount > 0)
-                avgRate = String
-                        .format("%8.2f",
-                                ((float) (eventCount * 1000) / (float) (time - startTime)));
-            else
-                avgRate = "--------";
+			if (eventCount > 0)
+				avgRate = String
+						.format("%8.2f",
+								((float) (eventCount * 1000) / (float) (time - startTime)));
+			else
+				avgRate = "--------";
 
-            logger.trace("count: " + String.format("%10d", eventCount)
-                    + " time: "
-                    + String.format("%8d", (time - startTime) / 1000)
-                    + " avg rate: " + avgRate + "   " + jsonDoc.toString()
-                    + " " + s4StreamName + " " + s4EventClassName);
-        }
-        eventCount++;
-    }
+			logger.trace("count: " + String.format("%10d", eventCount)
+					+ " time: "
+					+ String.format("%8d", (time - startTime) / 1000)
+					+ " avg rate: " + avgRate + "   " + jsonDoc.toString()
+					+ " " + s4StreamName + " " + s4EventClassName);
+		}
+		eventCount++;
+	}
 
-    /**
-     * Stops the event generation process when a process is active and safely
-     * closes the connection to the S4 client adaptor. Does nothing otherwise.
-     */
-    public void stop() {
+	/**
+	 * Stops the event generation process when a process is active and safely
+	 * closes the connection to the S4 client adaptor. Does nothing otherwise.
+	 */
+	public void stop() {
 
-        isInterrupted = true;
+		isInterrupted = true;
 
-    }
+	}
 
-    /**
-     * Closes the connection to the S4 client adaptor.
-     */
-    public void close() {
-        try {
-            if (driver != null)
-                driver.disconnect();
-        } catch (Exception e) {
-            logger.error("Error when trying to disconnect driver.");
-        }
-    }
+	/**
+	 * Closes the connection to the S4 client adaptor.
+	 */
+	public void close() {
+		try {
+			if (driver != null)
+				driver.disconnect();
+		} catch (Exception e) {
+			logger.error("Error when trying to disconnect driver.");
+		}
+	}
 
-    /**
-     * @return the hostname of the S4 client adaptor.
-     */
-    public String getHostname() {
-        return hostname;
-    }
+	/**
+	 * @return the hostname of the S4 client adaptor.
+	 */
+	public String getHostname() {
+		return hostname;
+	}
 
-    /**
-     * @return the port of the S4 client adaptor.
-     */
-    public String getPort() {
-        return port;
-    }
+	/**
+	 * @return the port of the S4 client adaptor.
+	 */
+	public String getPort() {
+		return port;
+	}
 
-    /**
-     * @return the S4 client driver.
-     */
-    public Driver getDriver() {
-        return driver;
-    }
+	/**
+	 * @return the S4 client driver.
+	 */
+	public Driver getDriver() {
+		return driver;
+	}
 
-    /**
-     * @param driver
-     *            the S4 client driver.
-     */
-    final private void setDriver(Driver driver) {
-        this.driver = driver;
-    }
+	/**
+	 * @param driver
+	 *            the S4 client driver.
+	 */
+	final private void setDriver(Driver driver) {
+		this.driver = driver;
+	}
 
-    /**
-     * @return the eventRate.
-     */
-    public float getEventRate() {
-        if (time - startTime > 0)
-            return (float) eventCount / (float) ((time - startTime) * 1000);
-        else
-            return 0.0f;
-    }
+	/**
+	 * @return the eventRate.
+	 */
+	public float getEventRate() {
+		if (time - startTime > 0)
+			return (float) eventCount / (float) ((time - startTime) * 1000);
+		else
+			return 0.0f;
+	}
 
-    /**
-     * @return the eventCount
-     */
-    public float getEventCount() {
-        return eventCount;
-    }
+	/**
+	 * @return the eventCount
+	 */
+	public float getEventCount() {
+		return eventCount;
+	}
 
-    /**
-     * Implements the event generation logic.
-     * 
-     * @param eventID
-     *            the eventID is a positive number between <code>0</code> and
-     *            <code>numEvents</code>.
-     * @return JSONObject the document to be sent to the S4 client adaptor.
-     * @throws JSONException
-     */
-    abstract protected JSONObject getDocument(long eventID)
-            throws JSONException;
+	/**
+	 * Implements the event generation logic.
+	 * 
+	 * @param eventID
+	 *            the eventID is a positive number between <code>0</code> and
+	 *            <code>numEvents</code>.
+	 * @return JSONObject the document to be sent to the S4 client adaptor.
+	 * @throws JSONException
+	 */
+	abstract protected JSONObject getDocument(String docId)
+			throws JSONException;
 
-    /**
-     * Implements initialization logic for the <code>getDocument</code> method.
-     */
-    abstract protected void init();
+	/**
+	 * Implements initialization logic for the <code>getDocument</code> method.
+	 */
+	abstract protected void init();
 }

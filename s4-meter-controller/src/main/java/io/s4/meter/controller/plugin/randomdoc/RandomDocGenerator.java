@@ -78,7 +78,7 @@ public class RandomDocGenerator extends EventGenerator {
      * @see io.s4.meter.common.EventGenerator#start()
      */
     @Override
-    protected JSONObject getDocument(long eventID) throws JSONException {
+    protected JSONObject getDocument(String docId) throws JSONException {
 
         JSONObject jsonDoc;
         StringBuilder words = new StringBuilder();
@@ -90,7 +90,8 @@ public class RandomDocGenerator extends EventGenerator {
 
         /* Create JSON doc. */
         jsonDoc = new JSONObject();
-        jsonDoc.put("id", new Long(eventID));
+                	
+        jsonDoc.put("id", docId);
         jsonDoc.put("text", words.toString());
 
         /* Send event. */

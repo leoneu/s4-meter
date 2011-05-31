@@ -1,13 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans             http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans             http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-  <bean id="eventCatcher" class="io.s4.meter.controller.plugin.randomdoc.ProcessDocPE">
-    <property name="keys">
+	<bean id="processDocPE" class="io.s4.meter.controller.plugin.randomdoc.ProcessDocPE">
+		<property name="id" value="processDocPE" />
+		<property name="keys">
+			<list>
+				<value>RawDoc *</value>
+			</list>
+		</property>
+		<property name="dispatcher" ref="appDispatcher" />
+		<property name="outputStreamName" value="Words" />
+	</bean>
+
+	<bean id="wordCounterPE" class="io.s4.meter.controller.plugin.randomdoc.WordCounterPE">
+		<property name="id" value="wordCounterPE" />
+		<property name="keys">
+			<list>
+				<value>Words word</value>
+			</list>
+		</property>
+		<property name="outputFrequencyByEventCount" value="1"/>
+		
+	</bean>
+
+<bean id="wordPartitioner" class="io.s4.dispatcher.partitioner.DefaultPartitioner">
+    <property name="streamNames">
       <list>
-        <value>RawDoc *</value>
+        <value>Words</value>
       </list>
     </property>
+    <property name="hashKey">
+      <list>
+        <value>word</value>
+      </list>
+    </property>
+    <property name="hasher" ref="hasher"/>
+    <property name="debug" value="false"/>
   </bean>
+
+  <bean id="appDispatcher" class="io.s4.dispatcher.Dispatcher" init-method="init">
+    <property name="partitioners">
+      <list>
+        <ref bean="wordPartitioner"/>
+      </list>
+    </property>
+    <property name="eventEmitter" ref="commLayerEmitter"/>
+    <property name="loggerName" value="s4"/>
+  </bean>
+
 
 </beans>

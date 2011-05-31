@@ -52,9 +52,6 @@ Any discrepancy in counts is due to errors which may be caused by:
 
 For low event rates, the first two sources should be negligible. Order and time of arrival shouldn't affect the final count. 
 
-Installation and Run
---------------------
-
 Set up an S4 Image
 ------------------
 

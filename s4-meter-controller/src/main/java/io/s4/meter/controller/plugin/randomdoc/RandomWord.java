@@ -28,58 +28,75 @@ import static java.lang.Math.abs;
  */
 public class RandomWord {
 
-    static int DEFAULT_WORD_SIZE = 10;
-    Random random;
-    int wordLength = 10;
-    char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
-    int alphabetSize = alphabet.length;
-    char[] word;
+	private static int DEFAULT_WORD_SIZE = 10;
+	private Random random;
+	private int wordLength = 10;
+	private char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+	private int alphabetSize = alphabet.length;
+	private char[] word;
 
-    /**
-     * Creates a random word generator.Uses a seed value of zero and a default
-     * word length.
-     * 
-     * @see #RandomWord(long seed, int wordLength)
-     */
-    public RandomWord() {
-        this(0, DEFAULT_WORD_SIZE);
-    }
+	/**
+	 * Creates a random word generator.Uses a seed value of zero and a default
+	 * word length.
+	 * 
+	 * @see #RandomWord(long seed, int wordLength)
+	 */
+	public RandomWord() {
+		this(0, DEFAULT_WORD_SIZE);
+	}
 
-    /**
-     * Creates a random word generator.Uses a default word length.
-     * 
-     * @param seed
-     *            the seed for the random number generator.
-     * @see #RandomWord(long seed, int wordLength)
-     */
-    public RandomWord(long seed) {
-        this(seed, DEFAULT_WORD_SIZE);
-    }
+	/**
+	 * Creates a random word generator.Uses a default word length.
+	 * 
+	 * @param seed
+	 *            the seed for the random number generator.
+	 * @see #RandomWord(long seed, int wordLength)
+	 */
+	public RandomWord(long seed) {
+		this(seed, DEFAULT_WORD_SIZE);
+	}
 
-    /**
-     * Creates a random word generator.
-     * 
-     * @param seed
-     *            the seed for the random number generator.
-     * @param wordLength
-     *            the desired word length.
-     */
-    public RandomWord(long seed, int wordLength) {
-        this.random = new Random(seed);
-        this.wordLength = wordLength;
-        word = new char[wordLength];
-    }
+	/**
+	 * Creates a random word generator.
+	 * 
+	 * @param seed
+	 *            the seed for the random number generator.
+	 * @param wordLength
+	 *            the desired word length.
+	 */
+	public RandomWord(long seed, int wordLength) {
+		this.random = new Random(seed);
+		this.wordLength = wordLength;
+		word = new char[wordLength];
+	}
 
-    /**
-     * @return a random word.
-     */
-    public String getWord() {
+	/**
+	 * * Creates a random word generator.
+	 * 
+	 * @param seed
+	 *            the seed for the random number generator.
+	 * @param wordLength
+	 *            the desired word length.
+	 * @param alphabet
+	 *            a string with the characters to be used in the words.
+	 */
+	public RandomWord(long seed, int wordLength, String alphabet) {
+		
+		this(seed, wordLength);
+		this.alphabet = alphabet.toCharArray();
+		this.alphabetSize = this.alphabet.length;
+	}
 
-        for (int i = 0; i < wordLength; i++) {
+	/**
+	 * @return a random word.
+	 */
+	public String getWord() {
 
-            int num = abs(random.nextInt()) % alphabetSize;
-            word[i] = alphabet[num];
-        }
-        return new String(word);
-    }
+		for (int i = 0; i < wordLength; i++) {
+
+			int num = abs(random.nextInt()) % alphabetSize;
+			word[i] = alphabet[num];
+		}
+		return new String(word);
+	}
 }
