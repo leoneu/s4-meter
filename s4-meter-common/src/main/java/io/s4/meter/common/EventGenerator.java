@@ -54,7 +54,7 @@ public abstract class EventGenerator implements Serializable {
 	final private String port;
 	final private String s4StreamName;
 	final private String s4EventClassName;
-	final private long eventPeriod;
+	final private float eventPeriod;
 	final private long numEvents;
 
 	transient private Driver driver;
@@ -94,7 +94,7 @@ public abstract class EventGenerator implements Serializable {
 		this.hostname = hostname;
 		this.s4StreamName = s4StreamName;
 		this.s4EventClassName = s4EventClassName;
-		this.eventPeriod = (long) (1000f / eventRate);
+		this.eventPeriod = (1000f / eventRate);
 		this.numEvents = numEvents;
 	}
 
@@ -191,7 +191,7 @@ public abstract class EventGenerator implements Serializable {
 				.append(eventID);
 		JSONObject jsonDoc = getDocument(docId.toString());
 		time = System.currentTimeMillis();
-		long delta = (time - startTime) - (eventPeriod * eventCount);
+		long delta = (time - startTime) - (long)(eventPeriod * eventCount);
 		if (delta < 0) {
 
 			/*
